@@ -1,0 +1,221 @@
+// Dentora — bilingual dental e-learning platform
+// Prisma schema (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Pooled connection used at runtime (e.g. Neon's "-pooler" URL on serverless).
+  url       = env("DATABASE_URL")
+  // Direct (non-pooled) connection used for migrations / `prisma db push`.
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum InstructorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Language {
+  AR
+  EN
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QuestionType {
+  MCQ
+  SHORT
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String  @id @default(cuid())
+  name         String
+  phone        String? // mandatory for students (used for watermarking), optional for instructors/admin
+  email        String  @unique
+  passwordHash String
+  role         Role    @default(STUDENT)
+  university   String?
+  bio          String? @db.Text
+
+  // Instructor accounts are reviewed before activation
+  instructorStatus InstructorStatus?
+  isActive         Boolean           @default(true)
+
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courses      Course[]            @relation("InstructorCourses")
+  enrollments  Enrollment[]
+  applications CourseApplication[]
+  progress     LectureProgress[]
+  quizAttempts QuizAttempt[]
+
+  @@index([role])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  nameEn    String
+  nameAr    String
+  createdAt DateTime @default(now())
+
+  courses Course[]
+}
+
+model Course {
+  id            String     @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String     @db.Text
+  descriptionAr String     @db.Text
+  thumbnail     String?
+  language      Language   @default(EN)
+  difficulty    Difficulty @default(BEGINNER)
+  isPublished   Boolean    @default(false)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  instructorId String
+  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lectures     Lecture[]
+  enrollments  Enrollment[]
+  applications CourseApplication[]
+  questions    Question[]
+  quizAttempts QuizAttempt[]
+
+  @@index([categoryId])
+  @@index([instructorId])
+  @@index([isPublished])
+}
+
+model Lecture {
+  id            String  @id @default(cuid())
+  title         String
+  description   String? @db.Text
+  videoUrl      String?
+  videoPublicId String? // Cloudinary public id for signed delivery
+  pdfUrl        String?
+  pdfPublicId   String?
+  order         Int     @default(0)
+  duration      Int     @default(0) // seconds
+  isPreview     Boolean @default(false) // free preview lecture
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  progress  LectureProgress[]
+  questions Question[]
+
+  @@index([courseId])
+}
+
+model Enrollment {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  enrolledAt DateTime @default(now())
+  // How the student gained access: self-applied & approved, or added by an admin.
+  source     String   @default("APPLICATION") // APPLICATION | ADMIN
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+// A student's request to access a course. Approving it creates an Enrollment.
+model CourseApplication {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status    ApplicationStatus @default(PENDING)
+  note      String?           @db.Text // optional message from the applicant
+
+  createdAt  DateTime  @default(now())
+  reviewedAt DateTime?
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@index([status])
+}
+
+model LectureProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lectureId   String
+  lecture     Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@unique([userId, lectureId])
+  @@index([lectureId])
+}
+
+model Question {
+  id           String       @id @default(cuid())
+  type         QuestionType @default(MCQ)
+  questionText String       @db.Text
+  options      Json? // for MCQ: ["A", "B", "C", "D"]
+  correctAnswer String      @db.Text // MCQ: the correct option value; SHORT: expected answer
+  points       Int          @default(1)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // null => attached to the whole course, otherwise to a specific lecture
+  lectureId String?
+  lecture   Lecture? @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([courseId])
+  @@index([lectureId])
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId       String
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectureId      String? // null => course-wide quiz
+  answers        Json // { questionId: answer }
+  score          Int      @default(0)
+  totalQuestions Int      @default(0)
+  submittedAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([courseId])
+}
