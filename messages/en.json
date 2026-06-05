@@ -183,6 +183,7 @@
     "lectureMaterials": "Lecture materials",
     "noPdf": "No PDF attached to this lecture.",
     "noVideo": "No video attached to this lecture.",
+    "downloadPdf": "Download (watermarked)",
     "progress": "Progress",
     "watermarkNote": "This content is watermarked with your identity.",
     "contentHidden": "Content hidden while the window is inactive",

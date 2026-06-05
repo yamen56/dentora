@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   Loader2,
   ZoomIn,
   ZoomOut,
@@ -135,6 +136,15 @@ export function PdfViewer({
           </Button>
         </div>
         <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a
+              href={`/api/media/lecture/${lectureId}/pdf/download`}
+              download
+            >
+              <Download className="h-4 w-4" />
+              {t("downloadPdf")}
+            </a>
+          </Button>
           <Button
             variant="outline"
             size="icon"
