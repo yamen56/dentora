@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -44,12 +45,24 @@ export const authOptions: NextAuthOptions = {
           );
         }
 
+        // Enforce one active session per STUDENT: rotate the session id on every
+        // login. Any other device still holding the previous id is signed out.
+        let sessionId: string | null = null;
+        if (user.role === "STUDENT") {
+          sessionId = randomUUID();
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { sessionId },
+          });
+        }
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
           image: user.image ?? null,
+          sessionId,
         };
       },
     }),
@@ -59,6 +72,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.sessionId = user.sessionId ?? null;
       }
       return token;
     },
@@ -66,6 +80,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.sessionId = token.sessionId ?? null;
       }
       return session;
     },

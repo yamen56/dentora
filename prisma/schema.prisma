@@ -61,6 +61,10 @@ model User {
   instructorStatus InstructorStatus?
   isActive         Boolean           @default(true)
 
+  // Single active session for students: the id of the device/session that is
+  // currently allowed. A new login rotates it, signing out any other device.
+  sessionId String?
+
   image     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

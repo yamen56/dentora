@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { QuizPanel, type QuizQuestion } from "@/components/quiz-panel";
+import { CaptureGuard } from "@/components/capture-guard";
 import { cn } from "@/lib/utils";
 
 const VideoPlayer = dynamic(
@@ -222,12 +223,19 @@ export function LearnClient({
 
                 {current.hasVideo && (
                   <TabsContent value="video" className="pt-4">
-                    <VideoPlayer lectureId={current.id} watermark={watermark} />
+                    <CaptureGuard>
+                      <VideoPlayer
+                        lectureId={current.id}
+                        watermark={watermark}
+                      />
+                    </CaptureGuard>
                   </TabsContent>
                 )}
                 {current.hasPdf && (
                   <TabsContent value="pdf" className="pt-4">
-                    <PdfViewer lectureId={current.id} watermark={watermark} />
+                    <CaptureGuard>
+                      <PdfViewer lectureId={current.id} watermark={watermark} />
+                    </CaptureGuard>
                   </TabsContent>
                 )}
                 {(lectureQuestions[current.id]?.length ?? 0) > 0 && (
