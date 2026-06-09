@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowRight, BookOpen, GraduationCap, Star, Users } from "lucide-react";
 
+import type { Difficulty } from "@prisma/client";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { pick } from "@/lib/i18n-helpers";
@@ -15,7 +17,7 @@ export interface CourseCardData {
   titleAr: string;
   thumbnail: string | null;
   language: "EN" | "AR";
-  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  difficulty: Difficulty;
   category: { nameEn: string; nameAr: string };
   instructor: { name: string };
   _count?: { lectures: number; enrollments: number };

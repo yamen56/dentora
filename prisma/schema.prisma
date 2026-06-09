@@ -31,9 +31,12 @@ enum Language {
 }
 
 enum Difficulty {
+  // Legacy values kept so existing rows stay valid; the app now uses the two below.
   BEGINNER
   INTERMEDIATE
   ADVANCED
+  INTENSIVE
+  COMPLETE
 }
 
 enum QuestionType {
@@ -96,7 +99,7 @@ model Course {
   descriptionAr String     @db.Text
   thumbnail     String?
   language      Language   @default(EN)
-  difficulty    Difficulty @default(BEGINNER)
+  difficulty    Difficulty @default(INTENSIVE)
   isPublished   Boolean    @default(false)
 
   categoryId String

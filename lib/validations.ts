@@ -31,7 +31,7 @@ export const courseSchema = z.object({
   descriptionAr: z.string().min(10).max(5000),
   categoryId: z.string().min(1),
   language: z.enum(["EN", "AR"]),
-  difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
+  difficulty: z.enum(["INTENSIVE", "COMPLETE"]),
   thumbnail: z.string().url().optional().or(z.literal("")),
 });
 
@@ -75,6 +75,12 @@ export const quizSubmitSchema = z.object({
   answers: z.record(z.string(), z.string()),
 });
 
+// A user updating their own profile (instructor photo + bio).
+export const profileSchema = z.object({
+  image: z.string().url().optional().or(z.literal("")),
+  bio: z.string().max(2000).optional().or(z.literal("")),
+});
+
 // A student applying for access to a course (optional message).
 export const applicationSchema = z.object({
   note: z.string().max(1000).optional().or(z.literal("")),
@@ -110,7 +116,7 @@ export const courseFormSchema = z.object({
   descriptionAr: z.string().min(10).max(5000),
   categoryId: z.string().min(1),
   language: z.enum(["EN", "AR"]),
-  difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
+  difficulty: z.enum(["INTENSIVE", "COMPLETE"]),
   thumbnail: z.string().url().optional().or(z.literal("")),
 });
 export type CourseFormValues = z.infer<typeof courseFormSchema>;

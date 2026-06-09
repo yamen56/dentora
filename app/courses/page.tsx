@@ -19,11 +19,7 @@ async function getData(sp: SearchParams) {
 
   if (sp.category) where.category = { slug: sp.category };
   if (sp.language === "EN" || sp.language === "AR") where.language = sp.language;
-  if (
-    sp.difficulty === "BEGINNER" ||
-    sp.difficulty === "INTERMEDIATE" ||
-    sp.difficulty === "ADVANCED"
-  ) {
+  if (sp.difficulty === "INTENSIVE" || sp.difficulty === "COMPLETE") {
     where.difficulty = sp.difficulty;
   }
 

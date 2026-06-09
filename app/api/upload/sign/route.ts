@@ -22,14 +22,19 @@ export async function POST(req: Request) {
         : "video";
   const folder = typeof body.folder === "string" ? body.folder : "dentora";
 
+  // Images (thumbnails, profile photos) are shown publicly, so upload them as
+  // public. Videos and PDFs are protected content → private (authenticated),
+  // delivered only via short-lived signed URLs.
+  const deliveryType = resourceType === "image" ? "upload" : "authenticated";
+
   // Sign exactly the params the browser will send with the upload
-  const signParams = { folder, type: "authenticated" };
+  const signParams = { folder, type: deliveryType };
   const signed = signUploadParams(signParams);
 
   return json({
     ...signed,
     folder,
-    type: "authenticated",
+    type: deliveryType,
     resourceType,
   });
 }

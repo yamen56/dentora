@@ -274,7 +274,12 @@
     "publishToggled": "Course visibility updated.",
     "thumbnail": "Thumbnail image",
     "thumbnailUrl": "Thumbnail URL",
-    "pendingApproval": "Your instructor account is pending approval. You'll be able to publish once approved."
+    "pendingApproval": "Your instructor account is pending approval. You'll be able to publish once approved.",
+    "profile": "Your profile",
+    "profilePhoto": "Profile photo",
+    "bioLabel": "Bio / credentials",
+    "saveProfile": "Save profile",
+    "profileSaved": "Profile updated."
   },
   "admin": {
     "title": "Admin panel",
@@ -337,6 +342,8 @@
     "noCoursesYet": "Create a course first to add students."
   },
   "difficulty": {
+    "INTENSIVE": "Intensive",
+    "COMPLETE": "Complete coverage",
     "BEGINNER": "Beginner",
     "INTERMEDIATE": "Intermediate",
     "ADVANCED": "Advanced"

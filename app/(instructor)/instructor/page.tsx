@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProfileForm } from "@/components/instructor/profile-form";
 import { pick } from "@/lib/i18n-helpers";
 
 async function getCourses(instructorId: string) {
@@ -29,6 +30,12 @@ export default async function InstructorHome() {
   const t = await getTranslations("instructor");
   const locale = await getLocale();
   const courses = await getCourses(user.id);
+  const profile = await prisma.user
+    .findUnique({
+      where: { id: user.id },
+      select: { name: true, image: true, bio: true },
+    })
+    .catch(() => null);
 
   return (
     <div className="space-y-6">
@@ -44,6 +51,19 @@ export default async function InstructorHome() {
           </Link>
         </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t("profile")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProfileForm
+            name={profile?.name ?? user.name ?? ""}
+            image={profile?.image ?? ""}
+            bio={profile?.bio ?? ""}
+          />
+        </CardContent>
+      </Card>
 
       {courses.length === 0 ? (
         <Card>

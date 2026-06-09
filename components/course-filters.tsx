@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DIFFICULTIES, LANGUAGES } from "@/lib/constants";
+import { DIFFICULTIES } from "@/lib/constants";
 import { pick } from "@/lib/i18n-helpers";
 
 interface Cat {
@@ -67,23 +67,6 @@ export function CourseFilters({ categories }: { categories: Cat[] }) {
           {categories.map((c) => (
             <SelectItem key={c.id} value={c.slug}>
               {pick(locale, c.nameEn, c.nameAr)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={params.get("language") ?? "all"}
-        onValueChange={(v) => setParam("language", v)}
-      >
-        <SelectTrigger className="md:w-36">
-          <SelectValue placeholder={t("allLanguages")} />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{t("allLanguages")}</SelectItem>
-          {LANGUAGES.map((l) => (
-            <SelectItem key={l.value} value={l.value}>
-              {pick(locale, l.labelEn, l.labelAr)}
             </SelectItem>
           ))}
         </SelectContent>

@@ -7,9 +7,8 @@ export const LANGUAGES = [
 ] as const;
 
 export const DIFFICULTIES = [
-  { value: "BEGINNER", labelEn: "Beginner", labelAr: "مبتدئ" },
-  { value: "INTERMEDIATE", labelEn: "Intermediate", labelAr: "متوسط" },
-  { value: "ADVANCED", labelEn: "Advanced", labelAr: "متقدم" },
+  { value: "INTENSIVE", labelEn: "Intensive", labelAr: "مكثف" },
+  { value: "COMPLETE", labelEn: "Complete coverage", labelAr: "تغطية شاملة" },
 ] as const;
 
 export const QUESTION_TYPES = [

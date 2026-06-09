@@ -100,7 +100,10 @@ export default async function ManageCoursePage({
     descriptionAr: course.descriptionAr,
     categoryId: course.categoryId,
     language: course.language,
-    difficulty: course.difficulty,
+    // Map any legacy level to the current options the form supports.
+    difficulty: (course.difficulty === "COMPLETE" ? "COMPLETE" : "INTENSIVE") as
+      | "INTENSIVE"
+      | "COMPLETE",
     thumbnail: course.thumbnail ?? "",
   };
 
@@ -126,7 +129,7 @@ export default async function ManageCoursePage({
       </div>
 
       <Tabs defaultValue="lectures">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           <TabsTrigger value="details">{t("courseDetails")}</TabsTrigger>
           <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
           <TabsTrigger value="questions">{t("questions")}</TabsTrigger>

@@ -274,7 +274,12 @@
     "publishToggled": "تم تحديث حالة ظهور الدورة.",
     "thumbnail": "صورة مصغّرة",
     "thumbnailUrl": "رابط الصورة المصغّرة",
-    "pendingApproval": "حساب المدرّب الخاص بك بانتظار الموافقة. ستتمكن من النشر بعد الموافقة."
+    "pendingApproval": "حساب المدرّب الخاص بك بانتظار الموافقة. ستتمكن من النشر بعد الموافقة.",
+    "profile": "ملفك الشخصي",
+    "profilePhoto": "الصورة الشخصية",
+    "bioLabel": "نبذة / المؤهلات",
+    "saveProfile": "حفظ الملف",
+    "profileSaved": "تم تحديث الملف."
   },
   "admin": {
     "title": "لوحة الإدارة",
@@ -337,6 +342,8 @@
     "noCoursesYet": "أنشئ دورة أولاً لإضافة الطلاب."
   },
   "difficulty": {
+    "INTENSIVE": "مكثف",
+    "COMPLETE": "تغطية شاملة",
     "BEGINNER": "مبتدئ",
     "INTERMEDIATE": "متوسط",
     "ADVANCED": "متقدم"

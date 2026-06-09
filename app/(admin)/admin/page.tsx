@@ -148,7 +148,7 @@ export default async function AdminPage() {
       </div>
 
       <Tabs defaultValue="instructors">
-        <TabsList className="flex-wrap">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           <TabsTrigger value="instructors">
             {t("instructors")}
             {pending.length > 0 && (

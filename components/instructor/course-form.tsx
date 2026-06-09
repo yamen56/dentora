@@ -58,7 +58,7 @@ export function CourseForm({
       descriptionAr: "",
       categoryId: categories[0]?.id ?? "",
       language: "EN",
-      difficulty: "BEGINNER",
+      difficulty: "INTENSIVE",
       thumbnail: "",
     },
   });
