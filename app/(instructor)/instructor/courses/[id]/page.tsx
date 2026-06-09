@@ -21,13 +21,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CourseForm } from "@/components/instructor/course-form";
 import { LectureManager } from "@/components/instructor/lecture-manager";
 import { QuestionManager } from "@/components/instructor/question-manager";
 import { CourseActions } from "@/components/instructor/course-actions";
-import { ApplicationActions } from "@/components/application-actions";
 import { pick } from "@/lib/i18n-helpers";
 
 export default async function ManageCoursePage({
@@ -37,7 +35,6 @@ export default async function ManageCoursePage({
 }) {
   const user = await requireRole("INSTRUCTOR");
   const t = await getTranslations("instructor");
-  const ta = await getTranslations("applications");
   const locale = await getLocale();
 
   const course = await prisma.course
@@ -59,11 +56,6 @@ export default async function ManageCoursePage({
             },
           },
           orderBy: { enrolledAt: "desc" },
-        },
-        applications: {
-          where: { status: "PENDING" },
-          orderBy: { createdAt: "desc" },
-          include: { user: { select: { name: true, email: true } } },
         },
         _count: { select: { enrollments: true, lectures: true } },
       },
@@ -133,14 +125,6 @@ export default async function ManageCoursePage({
           <TabsTrigger value="details">{t("courseDetails")}</TabsTrigger>
           <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
           <TabsTrigger value="questions">{t("questions")}</TabsTrigger>
-          <TabsTrigger value="applications">
-            {ta("title")}
-            {course.applications.length > 0 && (
-              <Badge variant="warning" className="ms-2">
-                {course.applications.length}
-              </Badge>
-            )}
-          </TabsTrigger>
           <TabsTrigger value="students">{t("students")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("analytics")}</TabsTrigger>
         </TabsList>
@@ -177,49 +161,6 @@ export default async function ManageCoursePage({
               lectureId: q.lectureId,
             }))}
           />
-        </TabsContent>
-
-        <TabsContent value="applications" className="pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                {ta("pendingApplications")} ({course.applications.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {course.applications.length === 0 ? (
-                <p className="text-muted-foreground">{ta("noApplications")}</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{ta("applicant")}</TableHead>
-                      <TableHead>{ta("note")}</TableHead>
-                      <TableHead className="text-end">{t("students")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {course.applications.map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell>
-                          <div className="font-medium">{a.user.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {a.user.email}
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[20rem] truncate text-sm text-muted-foreground">
-                          {a.note || "—"}
-                        </TableCell>
-                        <TableCell>
-                          <ApplicationActions id={a.id} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="students" className="pt-4">
