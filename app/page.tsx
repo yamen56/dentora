@@ -3,11 +3,15 @@ import { getLocale, getTranslations } from "next-intl/server";
 import {
   ArrowRight,
   BookOpen,
+  CheckCircle2,
+  ClipboardCheck,
   GraduationCap,
   Globe,
+  LineChart,
   PlayCircle,
   Search,
   ShieldCheck,
+  Stethoscope,
   TrendingUp,
   UserCheck,
   Users,
@@ -17,6 +21,12 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { CourseCard } from "@/components/course-card";
 import { categoryName } from "@/lib/i18n-helpers";
 import { initials } from "@/lib/utils";
@@ -90,6 +100,9 @@ export default async function HomePage() {
     { icon: Globe, title: t("feature1Title"), desc: t("feature1Desc") },
     { icon: ShieldCheck, title: t("feature2Title"), desc: t("feature2Desc") },
     { icon: TrendingUp, title: t("feature3Title"), desc: t("feature3Desc") },
+    { icon: ClipboardCheck, title: t("feature4Title"), desc: t("feature4Desc") },
+    { icon: Stethoscope, title: t("feature5Title"), desc: t("feature5Desc") },
+    { icon: LineChart, title: t("feature6Title"), desc: t("feature6Desc") },
   ];
 
   const steps = [
@@ -109,6 +122,11 @@ export default async function HomePage() {
     { icon: PlayCircle, label: t("statsLectures"), value: stats.lectureCount },
   ];
 
+  const faqs = [1, 2, 3, 4, 5].map((i) => ({
+    q: t(`faq${i}Q`),
+    a: t(`faq${i}A`),
+  }));
+
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -117,31 +135,100 @@ export default async function HomePage() {
           className="pointer-events-none absolute inset-0 -z-10 opacity-60"
           style={{
             backgroundImage:
-              "radial-gradient(60% 60% at 50% 0%, hsl(var(--primary)/0.12), transparent)",
+              "radial-gradient(60% 60% at 50% 0%, hsl(var(--primary)/0.14), transparent)",
           }}
         />
-        <div className="container flex flex-col items-center gap-6 py-24 text-center">
-          <Badge variant="secondary" className="px-4 py-1">
-            {tc("tagline")}
-          </Badge>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            {t("heroTitle")}
-          </h1>
-          <p className="max-w-2xl text-lg text-muted-foreground">
-            {t("heroSubtitle")}
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/courses">
-                {t("browseCourses")}
-                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/register">{t("becomeInstructor")}</Link>
-            </Button>
+        <div className="container grid items-center gap-12 py-20 lg:grid-cols-2 lg:py-24">
+          <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-start">
+            <Badge variant="secondary" className="px-4 py-1">
+              {tc("tagline")}
+            </Badge>
+            <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
+              {t("heroTitle")}
+            </h1>
+            <p className="max-w-xl text-lg text-muted-foreground">
+              {t("heroSubtitle")}
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+              <Button asChild size="lg">
+                <Link href="/courses">
+                  {t("browseCourses")}
+                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/register">{t("becomeInstructor")}</Link>
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">{t("heroNote")}</p>
           </div>
-          <p className="text-sm text-muted-foreground">{t("heroNote")}</p>
+
+          {/* Decorative product mock */}
+          <div
+            className="relative mx-auto hidden w-full max-w-md lg:block"
+            aria-hidden="true"
+          >
+            <div className="rounded-2xl border bg-card p-5 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <PlayCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">{t("mockCourse")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("mockLectureCount")}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="success">{t("mockEnrolled")}</Badge>
+              </div>
+              <div className="mt-4 space-y-2">
+                {[
+                  { label: t("mockLecture1"), done: true },
+                  { label: t("mockLecture2"), done: true },
+                  { label: t("mockLecture3"), done: false },
+                ].map((l) => (
+                  <div
+                    key={l.label}
+                    className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
+                  >
+                    {l.done ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <PlayCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{l.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="h-full w-2/3 rounded-full bg-primary" />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("mockProgress")}
+                </p>
+              </div>
+            </div>
+
+            <div className="absolute -end-6 -top-6 rounded-xl border bg-card px-4 py-3 shadow-md">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs font-semibold">{t("mockQuiz")}</p>
+                  <p className="text-xs text-muted-foreground">9/10</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute -bottom-5 -start-6 rounded-xl border bg-card px-4 py-3 shadow-md">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                <p className="text-xs font-semibold">{t("mockProtected")}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -160,10 +247,11 @@ export default async function HomePage() {
 
       {/* Features */}
       <section className="container py-16">
-        <h2 className="mb-8 text-center text-2xl font-bold">
-          {t("featuresTitle")}
-        </h2>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="mb-10 text-center">
+          <h2 className="text-2xl font-bold">{t("featuresTitle")}</h2>
+          <p className="mt-2 text-muted-foreground">{t("featuresSubtitle")}</p>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <div
               key={f.title}
@@ -284,29 +372,60 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* FAQ */}
+      <section className="border-t bg-muted/30 py-16">
+        <div className="container max-w-3xl">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold">{t("faqTitle")}</h2>
+            <p className="mt-2 text-muted-foreground">{t("faqSubtitle")}</p>
+          </div>
+          <Accordion type="single" collapsible className="w-full">
+            {faqs.map((f, i) => (
+              <AccordionItem key={f.q} value={`faq-${i}`}>
+                <AccordionTrigger className="text-base">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="border-t">
         <div className="container py-20">
           <div className="relative overflow-hidden rounded-2xl bg-primary px-6 py-14 text-center text-primary-foreground">
-            <h2 className="text-3xl font-bold">{t("ctaTitle")}</h2>
-            <p className="mx-auto mt-3 max-w-xl text-primary-foreground/90">
-              {t("ctaSubtitle")}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/courses">
-                  {t("browseCourses")}
-                  <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-              >
-                <Link href="/register">{t("ctaSecondary")}</Link>
-              </Button>
+            <div
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                backgroundImage:
+                  "radial-gradient(50% 80% at 80% 0%, hsl(0 0% 100%/0.25), transparent), radial-gradient(40% 60% at 10% 100%, hsl(0 0% 100%/0.15), transparent)",
+              }}
+            />
+            <div className="relative">
+              <h2 className="text-3xl font-bold">{t("ctaTitle")}</h2>
+              <p className="mx-auto mt-3 max-w-xl text-primary-foreground/90">
+                {t("ctaSubtitle")}
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                <Button asChild size="lg" variant="secondary">
+                  <Link href="/courses">
+                    {t("browseCourses")}
+                    <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                >
+                  <Link href="/register">{t("ctaSecondary")}</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { InstructorActions } from "@/components/admin/instructor-actions";
-import { UserActions } from "@/components/admin/user-actions";
+import { UsersTable } from "@/components/admin/users-table";
 import { AdminCourseActions } from "@/components/admin/admin-course-actions";
 import { CategoryManager } from "@/components/admin/category-manager";
 import { EnrollStudentForm } from "@/components/admin/enroll-student-form";
@@ -291,6 +291,8 @@ export default async function AdminPage() {
                     <TableRow>
                       <TableHead>{t("name")}</TableHead>
                       <TableHead>{t("instructors")}</TableHead>
+                      <TableHead>{t("lecturesCol")}</TableHead>
+                      <TableHead>{t("enrollmentsCol")}</TableHead>
                       <TableHead>{t("status")}</TableHead>
                       <TableHead className="text-end">{t("courses")}</TableHead>
                     </TableRow>
@@ -302,6 +304,8 @@ export default async function AdminPage() {
                           {pick(locale, c.titleEn, c.titleAr)}
                         </TableCell>
                         <TableCell>{c.instructor.name}</TableCell>
+                        <TableCell>{c._count.lectures}</TableCell>
+                        <TableCell>{c._count.enrollments}</TableCell>
                         <TableCell>
                           <Badge
                             variant={c.isPublished ? "success" : "secondary"}
@@ -328,37 +332,16 @@ export default async function AdminPage() {
         <TabsContent value="users" className="pt-4">
           <Card>
             <CardContent className="pt-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("name")}</TableHead>
-                    <TableHead>{t("email")}</TableHead>
-                    <TableHead>{t("role")}</TableHead>
-                    <TableHead className="text-end">{t("status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.users.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{u.role}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-2">
-                          {!u.isActive && (
-                            <Badge variant="destructive">off</Badge>
-                          )}
-                          {u.role !== "ADMIN" && (
-                            <UserActions id={u.id} isActive={u.isActive} />
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <UsersTable
+                users={data.users.map((u) => ({
+                  id: u.id,
+                  name: u.name,
+                  email: u.email,
+                  role: u.role,
+                  isActive: u.isActive,
+                  joined: fmtDate.format(u.createdAt),
+                }))}
+              />
             </CardContent>
           </Card>
         </TabsContent>

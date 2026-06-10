@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CourseForm } from "@/components/instructor/course-form";
 import { LectureManager } from "@/components/instructor/lecture-manager";
@@ -83,6 +84,30 @@ export default async function ManageCoursePage({
     progressGroups.map((g) => [g.lectureId, g._count._all]),
   );
   const enrollCount = course._count.enrollments;
+
+  // Quiz analytics
+  const quizAttempts = await prisma.quizAttempt
+    .findMany({
+      where: { courseId: course.id },
+      orderBy: { submittedAt: "desc" },
+      take: 20,
+      include: { user: { select: { name: true, email: true } } },
+    })
+    .catch(() => []);
+  const scored = quizAttempts.filter((a) => a.totalQuestions > 0);
+  const avgQuizPct = scored.length
+    ? Math.round(
+        scored.reduce((s, a) => s + a.score / a.totalQuestions, 0) /
+          scored.length *
+          100,
+      )
+    : null;
+  const lectureTitleMap = new Map(course.lectures.map((l) => [l.id, l.title]));
+
+  const fmtDate = new Intl.DateTimeFormat(
+    locale === "ar" ? "ar-EG" : "en-US",
+    { dateStyle: "medium", timeStyle: "short" },
+  );
 
   const formCourse = {
     id: course.id,
@@ -202,7 +227,7 @@ export default async function ManageCoursePage({
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4 pt-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -231,6 +256,18 @@ export default async function ManageCoursePage({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{course.questions.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {t("avgQuizScore")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {avgQuizPct === null ? "—" : `${avgQuizPct}%`}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -263,6 +300,64 @@ export default async function ManageCoursePage({
                     </div>
                   );
                 })
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">{t("quizResults")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {quizAttempts.length === 0 ? (
+                <p className="text-muted-foreground">{t("noQuizAttempts")}</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t("quizStudent")}</TableHead>
+                      <TableHead>{t("quizScope")}</TableHead>
+                      <TableHead>{t("quizScore")}</TableHead>
+                      <TableHead className="text-end">
+                        {t("quizDate")}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {quizAttempts.map((a) => {
+                      const pct =
+                        a.totalQuestions > 0
+                          ? Math.round((a.score / a.totalQuestions) * 100)
+                          : 0;
+                      return (
+                        <TableRow key={a.id}>
+                          <TableCell>
+                            <div className="font-medium">{a.user.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {a.user.email}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[14rem] truncate">
+                            {a.lectureId
+                              ? lectureTitleMap.get(a.lectureId) ??
+                                t("quizLecture")
+                              : t("quizWholeCourse")}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={pct >= 50 ? "success" : "destructive"}
+                            >
+                              {a.score}/{a.totalQuestions}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-end text-sm text-muted-foreground">
+                            {fmtDate.format(a.submittedAt)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
