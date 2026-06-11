@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileForm } from "@/components/instructor/profile-form";
+import { DocumentsPanel } from "@/components/instructor/documents-panel";
 import { pick } from "@/lib/i18n-helpers";
 
 async function getData(instructorId: string) {
@@ -32,17 +33,31 @@ async function getData(instructorId: string) {
         where: { course: { instructorId } },
       }),
     ]);
-    return { courses, quizAttemptCount };
+    // Fetched separately so a missing table (pre-migration) degrades gracefully.
+    const documents = await prisma.instructorDocument
+      .findMany({
+        where: { instructorId },
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, title: true, updatedAt: true },
+      })
+      .catch(() => []);
+    return { courses, quizAttemptCount, documents };
   } catch {
-    return { courses: [], quizAttemptCount: 0 };
+    return { courses: [], quizAttemptCount: 0, documents: [] };
   }
 }
 
 export default async function InstructorHome() {
   const user = await requireRole("INSTRUCTOR");
   const t = await getTranslations("instructor");
+  const td = await getTranslations("docs");
   const locale = await getLocale();
-  const { courses, quizAttemptCount } = await getData(user.id);
+  const { courses, quizAttemptCount, documents } = await getData(user.id);
+
+  const fmtDate = new Intl.DateTimeFormat(
+    locale === "ar" ? "ar-EG" : "en-US",
+    { dateStyle: "medium", timeStyle: "short" },
+  );
   const profile = await prisma.user
     .findUnique({
       where: { id: user.id },
@@ -104,6 +119,7 @@ export default async function InstructorHome() {
       <Tabs defaultValue="courses">
         <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           <TabsTrigger value="courses">{t("myCourses")}</TabsTrigger>
+          <TabsTrigger value="documents">{td("title")}</TabsTrigger>
           <TabsTrigger value="profile">{t("profile")}</TabsTrigger>
         </TabsList>
 
@@ -154,6 +170,16 @@ export default async function InstructorHome() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="documents" className="pt-4">
+          <DocumentsPanel
+            documents={documents.map((d) => ({
+              id: d.id,
+              title: d.title,
+              updated: fmtDate.format(d.updatedAt),
+            }))}
+          />
         </TabsContent>
 
         <TabsContent value="profile" className="pt-4">

@@ -77,6 +77,7 @@ model User {
   applications CourseApplication[]
   progress     LectureProgress[]
   quizAttempts QuizAttempt[]
+  documents    InstructorDocument[]
 
   @@index([role])
 }
@@ -209,6 +210,24 @@ model Question {
 
   @@index([courseId])
   @@index([lectureId])
+}
+
+// A document an instructor writes in the built-in editor (exported as PDF).
+model InstructorDocument {
+  id      String  @id @default(cuid())
+  title   String  @default("Untitled document")
+  // Tiptap JSON document
+  content Json?
+  // Writing direction of the document body: "ltr" | "rtl"
+  dir     String  @default("ltr")
+
+  instructorId String
+  instructor   User   @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instructorId])
 }
 
 model QuizAttempt {
