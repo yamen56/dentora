@@ -141,10 +141,11 @@ export default async function HomePage() {
         <div className="container grid items-center gap-12 py-20 lg:grid-cols-2 lg:py-24">
           <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-start">
             <Badge variant="secondary" className="px-4 py-1">
-              {tc("tagline")}
+              {t("heroBadge")}
             </Badge>
             <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
-              {t("heroTitle")}
+              {t("heroTitle1")}{" "}
+              <span className="text-primary">{t("heroTitleAccent")}</span>
             </h1>
             <p className="max-w-xl text-lg text-muted-foreground">
               {t("heroSubtitle")}
