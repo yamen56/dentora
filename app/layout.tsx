@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s · Dentora",
   },
   description:
-    "Bilingual (Arabic & English) online courses built for dental college students.",
+    "Online video courses built for dental college students — taught by practicing clinicians and academics.",
 };
 
 export default async function RootLayout({

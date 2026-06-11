@@ -5,14 +5,19 @@ import {
   BookOpen,
   CheckCircle2,
   ClipboardCheck,
+  FileText,
   GraduationCap,
-  Globe,
+  HeartPulse,
+  Layers,
   LineChart,
+  Microscope,
   PlayCircle,
   Search,
   ShieldCheck,
+  Smile,
   Stethoscope,
   TrendingUp,
+  Upload,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -32,6 +37,15 @@ import { categoryName } from "@/lib/i18n-helpers";
 import { initials } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const categoryIcons = [
+  Smile,
+  Stethoscope,
+  Microscope,
+  HeartPulse,
+  BookOpen,
+  ClipboardCheck,
+];
 
 async function getHomeData() {
   const [
@@ -55,7 +69,16 @@ async function getHomeData() {
         },
       })
       .catch(() => []),
-    prisma.category.findMany({ orderBy: { nameEn: "asc" } }).catch(() => []),
+    prisma.category
+      .findMany({
+        orderBy: { nameEn: "asc" },
+        include: {
+          _count: {
+            select: { courses: { where: { isPublished: true } } },
+          },
+        },
+      })
+      .catch(() => []),
     prisma.user
       .findMany({
         where: {
@@ -97,12 +120,25 @@ export default async function HomePage() {
   const { courses, categories, instructors, stats } = await getHomeData();
 
   const features = [
-    { icon: Globe, title: t("feature1Title"), desc: t("feature1Desc") },
+    { icon: Layers, title: t("feature1Title"), desc: t("feature1Desc") },
     { icon: ShieldCheck, title: t("feature2Title"), desc: t("feature2Desc") },
     { icon: TrendingUp, title: t("feature3Title"), desc: t("feature3Desc") },
     { icon: ClipboardCheck, title: t("feature4Title"), desc: t("feature4Desc") },
     { icon: Stethoscope, title: t("feature5Title"), desc: t("feature5Desc") },
-    { icon: LineChart, title: t("feature6Title"), desc: t("feature6Desc") },
+    { icon: Users, title: t("feature6Title"), desc: t("feature6Desc") },
+  ];
+
+  const insideItems = [
+    { icon: PlayCircle, title: t("inside1Title"), desc: t("inside1Desc") },
+    { icon: FileText, title: t("inside2Title"), desc: t("inside2Desc") },
+    { icon: ClipboardCheck, title: t("inside3Title"), desc: t("inside3Desc") },
+    { icon: TrendingUp, title: t("inside4Title"), desc: t("inside4Desc") },
+  ];
+
+  const instructorBenefits = [
+    { icon: Upload, title: t("teach1Title"), desc: t("teach1Desc") },
+    { icon: ShieldCheck, title: t("teach2Title"), desc: t("teach2Desc") },
+    { icon: LineChart, title: t("teach3Title"), desc: t("teach3Desc") },
   ];
 
   const steps = [
@@ -268,51 +304,136 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Inside every course */}
+      <section className="border-t bg-muted/30 py-16">
+        <div className="container grid items-center gap-12 lg:grid-cols-2">
+          <div>
+            <h2 className="text-2xl font-bold">{t("insideTitle")}</h2>
+            <p className="mt-2 text-muted-foreground">{t("insideSubtitle")}</p>
+            <div className="mt-8 space-y-6">
+              {insideItems.map((item) => (
+                <div key={item.title} className="flex gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quiz mock */}
+          <div
+            className="mx-auto hidden w-full max-w-md lg:block"
+            aria-hidden="true"
+          >
+            <div className="rounded-2xl border bg-card p-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <ClipboardCheck className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold">
+                    {t("insideMockTitle")}
+                  </p>
+                </div>
+                <Badge variant="outline">2 / 10</Badge>
+              </div>
+              <p className="mt-5 font-medium">{t("insideMockQ")}</p>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between rounded-lg border-2 border-primary bg-primary/5 px-4 py-3 text-sm font-medium">
+                  <span>{t("insideMockA1")}</span>
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                </div>
+                <div className="rounded-lg border px-4 py-3 text-sm text-muted-foreground">
+                  {t("insideMockA2")}
+                </div>
+                <div className="rounded-lg border px-4 py-3 text-sm text-muted-foreground">
+                  {t("insideMockA3")}
+                </div>
+              </div>
+              <div className="mt-5 flex justify-end">
+                <div className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+                  {t("insideMockNext")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Categories */}
       {categories.length > 0 && (
-        <section className="border-t bg-muted/30 py-16">
+        <section className="border-t py-16">
           <div className="container">
-            <h2 className="mb-8 text-2xl font-bold">{t("categoriesTitle")}</h2>
-            <div className="flex flex-wrap gap-3">
-              {categories.map((c) => (
-                <Link key={c.id} href={`/courses?category=${c.slug}`}>
-                  <Badge
-                    variant="outline"
-                    className="px-4 py-2 text-sm transition-colors hover:bg-accent"
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold">{t("categoriesTitle")}</h2>
+              <p className="mt-2 text-muted-foreground">
+                {t("categoriesSubtitle")}
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {categories.map((c, i) => {
+                const Icon = categoryIcons[i % categoryIcons.length];
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/courses?category=${c.slug}`}
+                    className="group"
                   >
-                    {categoryName(locale, c)}
-                  </Badge>
-                </Link>
-              ))}
+                    <div className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-md">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <Icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold">
+                          {categoryName(locale, c)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("categoryCourses", { count: c._count.courses })}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 rtl:rotate-180 rtl:group-hover:-translate-x-0.5" />
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
       {/* Featured courses */}
-      <section className="container py-16">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{t("popularCourses")}</h2>
-          <Button asChild variant="ghost">
-            <Link href="/courses">
-              {t("viewAll")}
-              <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-            </Link>
-          </Button>
-        </div>
-        {courses.length === 0 ? (
-          <p className="text-muted-foreground">{tc("comingSoon")}</p>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+      <section className="border-t bg-muted/30 py-16">
+        <div className="container">
+          <div className="mb-8 flex items-center justify-between">
+            <h2 className="text-2xl font-bold">{t("popularCourses")}</h2>
+            <Button asChild variant="ghost">
+              <Link href="/courses">
+                {t("viewAll")}
+                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+              </Link>
+            </Button>
           </div>
-        )}
+          {courses.length === 0 ? (
+            <p className="text-muted-foreground">{tc("comingSoon")}</p>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {courses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* How it works */}
-      <section className="border-t bg-muted/30 py-16">
+      <section className="border-t py-16">
         <div className="container">
           <div className="mb-10 text-center">
             <h2 className="text-2xl font-bold">{t("howTitle")}</h2>
@@ -339,42 +460,76 @@ export default async function HomePage() {
 
       {/* Instructors */}
       {instructors.length > 0 && (
-        <section className="container py-16">
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold">{t("instructorsTitle")}</h2>
-            <p className="mt-2 text-muted-foreground">
-              {t("instructorsSubtitle")}
-            </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {instructors.map((ins) => (
-              <div
-                key={ins.id}
-                className="flex flex-col items-center rounded-xl border bg-card p-6 text-center text-card-foreground transition-shadow hover:shadow-md"
-              >
-                <Avatar className="h-20 w-20">
-                  {ins.image && <AvatarImage src={ins.image} alt={ins.name} />}
-                  <AvatarFallback className="text-lg">
-                    {initials(ins.name)}
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="mt-4 font-semibold">{ins.name}</h3>
-                <p className="mt-1 text-xs text-primary">
-                  {t("instructorCourses", { count: ins._count.courses })}
-                </p>
-                {ins.bio && (
-                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
-                    {ins.bio}
+        <section className="border-t bg-muted/30 py-16">
+          <div className="container">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold">{t("instructorsTitle")}</h2>
+              <p className="mt-2 text-muted-foreground">
+                {t("instructorsSubtitle")}
+              </p>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {instructors.map((ins) => (
+                <div
+                  key={ins.id}
+                  className="flex flex-col items-center rounded-xl border bg-card p-6 text-center text-card-foreground transition-shadow hover:shadow-md"
+                >
+                  <Avatar className="h-20 w-20">
+                    {ins.image && <AvatarImage src={ins.image} alt={ins.name} />}
+                    <AvatarFallback className="text-lg">
+                      {initials(ins.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="mt-4 font-semibold">{ins.name}</h3>
+                  <p className="mt-1 text-xs text-primary">
+                    {t("instructorCourses", { count: ins._count.courses })}
                   </p>
-                )}
-              </div>
-            ))}
+                  {ins.bio && (
+                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                      {ins.bio}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
+      {/* For instructors */}
+      <section className="border-t bg-accent/40 py-16">
+        <div className="container">
+          <div className="mb-10 text-center">
+            <h2 className="text-2xl font-bold">{t("teachTitle")}</h2>
+            <p className="mt-2 text-muted-foreground">{t("teachSubtitle")}</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {instructorBenefits.map((b) => (
+              <div
+                key={b.title}
+                className="rounded-xl border bg-card p-6 text-card-foreground"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                  <b.icon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold">{b.title}</h3>
+                <p className="text-sm text-muted-foreground">{b.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Button asChild size="lg">
+              <Link href="/register">
+                {t("teachCta")}
+                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
-      <section className="border-t bg-muted/30 py-16">
+      <section className="border-t py-16">
         <div className="container max-w-3xl">
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold">{t("faqTitle")}</h2>
