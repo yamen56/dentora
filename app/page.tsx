@@ -135,6 +135,12 @@ export default async function HomePage() {
     { icon: TrendingUp, title: t("inside4Title"), desc: t("inside4Desc") },
   ];
 
+  const usmleItems = [
+    { icon: GraduationCap, title: t("usmle1Title"), desc: t("usmle1Desc") },
+    { icon: Layers, title: t("usmle2Title"), desc: t("usmle2Desc") },
+    { icon: Brain, title: t("usmle3Title"), desc: t("usmle3Desc") },
+  ];
+
   const instructorBenefits = [
     { icon: Upload, title: t("teach1Title"), desc: t("teach1Desc") },
     { icon: ShieldCheck, title: t("teach2Title"), desc: t("teach2Desc") },
@@ -361,6 +367,94 @@ export default async function HomePage() {
                 <div className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
                   {t("insideMockNext")}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* USMLE bridge — the Step 1 breakdown at the end of every lecture */}
+      <section className="relative overflow-hidden border-t bg-accent/30 py-16">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 opacity-70"
+          style={{
+            backgroundImage:
+              "radial-gradient(55% 55% at 85% 15%, hsl(var(--primary)/0.10), transparent)",
+          }}
+        />
+        <div className="container grid items-center gap-12 lg:grid-cols-2">
+          {/* Text */}
+          <div className="lg:order-last">
+            <Badge variant="secondary" className="px-3 py-1">
+              {t("usmleBadge")}
+            </Badge>
+            <h2 className="mt-4 text-2xl font-bold sm:text-3xl">
+              {t("usmleTitle")}
+            </h2>
+            <p className="mt-3 text-muted-foreground">{t("usmleSubtitle")}</p>
+            <div className="mt-8 space-y-6">
+              {usmleItems.map((item) => (
+                <div key={item.title} className="flex gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{item.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {item.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lecture → USMLE mock */}
+          <div
+            className="mx-auto w-full max-w-md lg:order-first"
+            aria-hidden="true"
+          >
+            <div className="rounded-2xl border bg-card p-6 shadow-lg">
+              {/* Completed lecture */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {t("usmleMockLecture")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("usmleMockDone")}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="success">{t("usmleMockBadge")}</Badge>
+              </div>
+
+              {/* Divider */}
+              <div className="my-5 border-t border-dashed" />
+
+              {/* USMLE Step 1 callout */}
+              <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
+                    S1
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-primary">
+                    {t("usmleMockTag")}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed">
+                  {t("usmleMockPoint")}
+                </p>
+              </div>
+
+              {/* Level chip */}
+              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                <GraduationCap className="h-4 w-4" />
+                <span>{t("usmleMockLevel")}</span>
               </div>
             </div>
           </div>
