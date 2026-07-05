@@ -23,7 +23,7 @@ export async function Navbar() {
               width={641}
               height={161}
               priority
-              className="h-8 w-auto dark:brightness-0 dark:invert"
+              className="h-11 w-auto dark:brightness-0 dark:invert"
             />
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex">

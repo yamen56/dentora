@@ -27,7 +27,7 @@ export async function Footer() {
               alt={tc("appName")}
               width={641}
               height={161}
-              className="h-7 w-auto dark:brightness-0 dark:invert"
+              className="h-9 w-auto dark:brightness-0 dark:invert"
             />
           </Link>
           <p className="max-w-sm text-sm text-muted-foreground">
