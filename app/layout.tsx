@@ -12,11 +12,11 @@ import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dentora — Dental education, done right",
-    template: "%s · Dentora",
+    default: "Why Medicine — Medical education, done right",
+    template: "%s · Why Medicine",
   },
   description:
-    "Online video courses built for dental college students — taught by practicing clinicians and academics.",
+    "Online video courses built for medical school students — taught by practicing clinicians and academics.",
 };
 
 export default async function RootLayout({

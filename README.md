@@ -1,7 +1,7 @@
-# Dentora · دنتورا
+# Why Medicine · واي ميديسن
 
 A full-stack **bilingual (Arabic + English)** online course platform built for
-dental-college students. Instructors publish video/PDF lectures and quizzes;
+medical-school students. Instructors publish video/PDF lectures and quizzes;
 students browse, **apply for access**, and study inside watermark-protected
 players. There is **no pricing** — access is granted by approving a student's
 application or by an admin adding the student to a course directly.
@@ -59,7 +59,7 @@ npm run dev            # http://localhost:3000
 ### Default admin
 
 The seed creates an admin from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`
-(defaults: `admin@dentora.app` / `ChangeMe123!`). Log in, open **Admin →
+(defaults: `admin@whymedicine.app` / `ChangeMe123!`). Log in, open **Admin →
 Instructors**, and approve instructor sign-ups from there.
 
 ### Typical first run

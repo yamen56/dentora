@@ -1,4 +1,4 @@
-// Dentora — bilingual dental e-learning platform
+// Why Medicine — bilingual medical e-learning platform
 // Prisma schema (PostgreSQL)
 
 generator client {

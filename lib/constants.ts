@@ -16,7 +16,7 @@ export const QUESTION_TYPES = [
   { value: "SHORT", labelEn: "Short answer", labelAr: "إجابة قصيرة" },
 ] as const;
 
-export const APP_NAME = "Dentora";
+export const APP_NAME = "Why Medicine";
 
 /** Map a role to the home route for that role. Pure — safe to import on the client. */
 export function roleHome(role: string): string {

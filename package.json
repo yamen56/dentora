@@ -1,11 +1,11 @@
 {
-  "name": "dentora",
+  "name": "why-medicine",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "prisma db push && next build",
+    "vercel-build": "prisma db push && prisma db seed && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",

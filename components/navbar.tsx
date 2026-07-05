@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { getCurrentUser, roleHome } from "@/lib/auth-helpers";
@@ -17,8 +17,8 @@ export async function Navbar() {
       <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <GraduationCap className="h-6 w-6 text-primary" />
-            <span>Dentora</span>
+            <Stethoscope className="h-6 w-6 text-primary" />
+            <span>Why Medicine</span>
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
             <Link

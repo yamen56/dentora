@@ -165,7 +165,7 @@ export function WatermarkVideoPlayer({
       <video ref={videoRef} className="w-full" playsInline />
       <canvas
         ref={canvasRef}
-        className="dentora-watermark-layer"
+        className="whymed-watermark-layer"
         style={{
           position: "absolute",
           inset: "0",

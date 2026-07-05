@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       : body.resourceType === "image"
         ? "image"
         : "video";
-  const folder = typeof body.folder === "string" ? body.folder : "dentora";
+  const folder = typeof body.folder === "string" ? body.folder : "why-medicine";
 
   // Images (thumbnails, profile photos) are shown publicly, so upload them as
   // public. Videos and PDFs are protected content → private (authenticated),

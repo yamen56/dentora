@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 export async function Footer() {
@@ -14,7 +14,7 @@ export async function Footer() {
   const account = [
     { href: "/register", label: t("createAccount") },
     { href: "/login", label: t("logIn") },
-    { href: "/register", label: t("teachOnDentora") },
+    { href: "/register", label: t("teachOnPlatform") },
   ];
 
   return (
@@ -22,7 +22,7 @@ export async function Footer() {
       <div className="container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-3 sm:col-span-2">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <GraduationCap className="h-6 w-6 text-primary" />
+            <Stethoscope className="h-6 w-6 text-primary" />
             <span>{tc("appName")}</span>
           </Link>
           <p className="max-w-sm text-sm text-muted-foreground">

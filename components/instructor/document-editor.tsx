@@ -146,7 +146,7 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
     content: doc.content ?? "",
     editorProps: {
       attributes: {
-        class: "dentora-doc focus:outline-none",
+        class: "whymed-doc focus:outline-none",
       },
     },
     onUpdate: () => {

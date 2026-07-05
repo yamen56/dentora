@@ -1,6 +1,6 @@
-# Deploying Dentora (Vercel + Neon + Cloudinary)
+# Deploying Why Medicine (Vercel + Neon + Cloudinary)
 
-This guide takes Dentora from your laptop to a live URL. We launch on a free
+This guide takes Why Medicine from your laptop to a live URL. We launch on a free
 `your-app.vercel.app` address first; adding a custom domain later is one extra step.
 
 **Stack:** Vercel (hosts the app) · Neon (Postgres database) · Cloudinary (lecture media).
@@ -10,10 +10,10 @@ This guide takes Dentora from your laptop to a live URL. We launch on a free
 ## Step 1 — Put the code on GitHub
 
 The repo is already initialized locally. Create an empty repo on GitHub
-(https://github.com/new — name it e.g. `dentora`, **don't** add a README), then:
+(https://github.com/new — name it e.g. `why-medicine`, **don't** add a README), then:
 
 ```bash
-git remote add origin https://github.com/<your-username>/dentora.git
+git remote add origin https://github.com/<your-username>/why-medicine.git
 git branch -M main
 git push -u origin main
 ```
@@ -67,7 +67,7 @@ watermark-protected delivery:
 ## Step 5 — Deploy on Vercel
 
 1. Sign up at https://vercel.com with your GitHub account.
-2. **Add New → Project** → import your `dentora` repo.
+2. **Add New → Project** → import your `why-medicine` repo.
 3. Framework preset: **Next.js** (auto-detected). Leave build settings default
    (`npm run build`; `prisma generate` runs automatically on install).
 4. Open **Environment Variables** and add these (Production):
@@ -89,7 +89,7 @@ watermark-protected delivery:
    node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
    ```
 
-5. Click **Deploy**. After ~1–2 min you get a URL like `https://dentora-xxxx.vercel.app`.
+5. Click **Deploy**. After ~1–2 min you get a URL like `https://why-medicine-xxxx.vercel.app`.
 
 ---
 

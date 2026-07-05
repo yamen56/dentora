@@ -11,10 +11,10 @@ import {
   Layers,
   LineChart,
   Microscope,
+  Brain,
   PlayCircle,
   Search,
   ShieldCheck,
-  Smile,
   Stethoscope,
   TrendingUp,
   Upload,
@@ -39,7 +39,7 @@ import { initials } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 const categoryIcons = [
-  Smile,
+  Brain,
   Stethoscope,
   Microscope,
   HeartPulse,

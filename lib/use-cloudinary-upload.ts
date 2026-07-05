@@ -25,7 +25,7 @@ export function useCloudinaryUpload() {
       const signRes = await fetch("/api/upload/sign", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ resourceType, folder: "dentora" }),
+        body: JSON.stringify({ resourceType, folder: "why-medicine" }),
       });
       if (!signRes.ok) {
         const err = await signRes.json().catch(() => ({}));

@@ -54,7 +54,7 @@ export async function GET(
   const primary = ascii(dbUser?.name) || ascii(dbUser?.email);
   const text =
     [primary, ascii(dbUser?.phone)].filter(Boolean).join("   -   ") ||
-    "Dentora";
+    "Why Medicine";
 
   let out: Uint8Array;
   try {
