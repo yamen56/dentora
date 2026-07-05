@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Stethoscope } from "lucide-react";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 export async function Footer() {
@@ -21,9 +21,14 @@ export async function Footer() {
     <footer className="border-t bg-muted/30">
       <div className="container grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-3 sm:col-span-2">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <Stethoscope className="h-6 w-6 text-primary" />
-            <span>{tc("appName")}</span>
+          <Link href="/" className="flex items-center" aria-label={tc("appName")}>
+            <Image
+              src="/why-medicine-logo.png"
+              alt={tc("appName")}
+              width={641}
+              height={161}
+              className="h-7 w-auto dark:brightness-0 dark:invert"
+            />
           </Link>
           <p className="max-w-sm text-sm text-muted-foreground">
             {t("blurb")}

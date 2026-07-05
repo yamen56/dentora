@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Stethoscope } from "lucide-react";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { getCurrentUser, roleHome } from "@/lib/auth-helpers";
@@ -16,9 +16,15 @@ export async function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-            <Stethoscope className="h-6 w-6 text-primary" />
-            <span>Why Medicine</span>
+          <Link href="/" className="flex items-center" aria-label="Why Medicine">
+            <Image
+              src="/why-medicine-logo.png"
+              alt="Why Medicine"
+              width={641}
+              height={161}
+              priority
+              className="h-8 w-auto dark:brightness-0 dark:invert"
+            />
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
             <Link
