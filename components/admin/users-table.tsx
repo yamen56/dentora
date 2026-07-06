@@ -105,7 +105,12 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
                       <Badge variant="destructive">{t("inactive")}</Badge>
                     )}
                     {u.role !== "ADMIN" && (
-                      <UserActions id={u.id} isActive={u.isActive} />
+                      <UserActions
+                        id={u.id}
+                        name={u.name}
+                        role={u.role}
+                        isActive={u.isActive}
+                      />
                     )}
                   </div>
                 </TableCell>

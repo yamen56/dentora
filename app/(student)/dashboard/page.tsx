@@ -2,11 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import {
+  ArrowRight,
   BookOpen,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
+  Compass,
   GraduationCap,
+  PlayCircle,
   TrendingUp,
 } from "lucide-react";
 
@@ -22,6 +25,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { CourseCard } from "@/components/course-card";
 import { pick } from "@/lib/i18n-helpers";
 
 async function getData(userId: string) {
@@ -76,7 +80,33 @@ async function getData(userId: string) {
       .count({ where: { userId } })
       .catch(() => quizAttempts.length);
 
-    return { enrollments, applications, quizAttempts, quizCount, completedMap };
+    // Recommend a few published courses the student hasn't enrolled in / applied to.
+    const excludeIds = [
+      ...enrollments.map((e) => e.courseId),
+      ...applications.map((a) => a.course.id),
+    ];
+    const recommended = await prisma.course.findMany({
+      where: {
+        isPublished: true,
+        ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+      include: {
+        category: true,
+        instructor: { select: { name: true } },
+        _count: { select: { lectures: true, enrollments: true } },
+      },
+    });
+
+    return {
+      enrollments,
+      applications,
+      quizAttempts,
+      quizCount,
+      completedMap,
+      recommended,
+    };
   } catch {
     return {
       enrollments: [],
@@ -84,6 +114,7 @@ async function getData(userId: string) {
       quizAttempts: [],
       quizCount: 0,
       completedMap: new Map<string, number>(),
+      recommended: [],
     };
   }
 }
@@ -93,8 +124,14 @@ export default async function StudentDashboard() {
   const t = await getTranslations("dashboard");
   const tq = await getTranslations("quiz");
   const locale = await getLocale();
-  const { enrollments, applications, quizAttempts, quizCount, completedMap } =
-    await getData(user.id);
+  const {
+    enrollments,
+    applications,
+    quizAttempts,
+    quizCount,
+    completedMap,
+    recommended,
+  } = await getData(user.id);
 
   const fmtDate = new Intl.DateTimeFormat(
     locale === "ar" ? "ar-EG" : "en-US",
@@ -115,6 +152,10 @@ export default async function StudentDashboard() {
         courseProgress.reduce((s, c) => s + c.pct, 0) / courseProgress.length,
       )
     : 0;
+
+  // "Jump back in" = most recent course that isn't finished (enrollments are
+  // already ordered newest-first, so the first match is the freshest).
+  const resume = courseProgress.find((c) => c.pct < 100);
 
   const stats = [
     { icon: BookOpen, label: t("statsEnrolled"), value: enrollments.length },
@@ -155,6 +196,39 @@ export default async function StudentDashboard() {
           </Card>
         ))}
       </div>
+
+      {resume && (
+        <Card className="overflow-hidden border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                <PlayCircle className="h-4 w-4" />
+                {t("jumpBackIn")}
+              </div>
+              <h3 className="truncate text-lg font-semibold">
+                {pick(
+                  locale,
+                  resume.enrollment.course.titleEn,
+                  resume.enrollment.course.titleAr,
+                )}
+              </h3>
+              <div className="max-w-md space-y-1">
+                <Progress value={resume.pct} />
+                <p className="text-xs text-muted-foreground">
+                  {t("progress", { percent: resume.pct })} · {resume.completed}/
+                  {resume.total}
+                </p>
+              </div>
+            </div>
+            <Button asChild size="lg" className="shrink-0">
+              <Link href={`/learn/${resume.enrollment.courseId}`}>
+                {resume.completed > 0 ? t("continue") : t("start")}
+                <ArrowRight className="h-4 w-4 rtl:rotate-180" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {applications.length > 0 && (
         <Card>
@@ -307,6 +381,36 @@ export default async function StudentDashboard() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {recommended.length > 0 && (
+        <div>
+          <div className="mb-4 flex items-center gap-2">
+            <Compass className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold">{t("exploreTitle")}</h2>
+              <p className="text-sm text-muted-foreground">{t("exploreDesc")}</p>
+            </div>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {recommended.map((c) => (
+              <CourseCard
+                key={c.id}
+                course={{
+                  id: c.id,
+                  titleEn: c.titleEn,
+                  titleAr: c.titleAr,
+                  thumbnail: c.thumbnail,
+                  language: c.language,
+                  difficulty: c.difficulty,
+                  category: c.category,
+                  instructor: c.instructor,
+                  _count: c._count,
+                }}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
