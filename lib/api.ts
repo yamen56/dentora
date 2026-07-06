@@ -50,6 +50,25 @@ export async function loadOwnedLecture(lectureId: string) {
   return { user, lecture } as const;
 }
 
+export async function loadOwnedFlashcard(flashcardId: string) {
+  const user = await getApiUser();
+  if (!user) return { error: json({ error: "unauthorized" }, 401) } as const;
+
+  const flashcard = await prisma.flashcard.findUnique({
+    where: { id: flashcardId },
+    include: { lecture: { select: { course: { select: { instructorId: true } } } } },
+  });
+  if (!flashcard) return { error: json({ error: "notFound" }, 404) } as const;
+
+  if (
+    flashcard.lecture.course.instructorId !== user.id &&
+    user.role !== "ADMIN"
+  ) {
+    return { error: json({ error: "forbidden" }, 403) } as const;
+  }
+  return { user, flashcard } as const;
+}
+
 export async function loadOwnedQuestion(questionId: string) {
   const user = await getApiUser();
   if (!user) return { error: json({ error: "unauthorized" }, 401) } as const;

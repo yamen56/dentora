@@ -69,6 +69,12 @@ export const questionSchema = z
     { message: "correctMustBeOption", path: ["correctAnswer"] },
   );
 
+export const flashcardSchema = z.object({
+  front: z.string().min(1, "required").max(2000),
+  back: z.string().min(1, "required").max(2000),
+  hint: z.string().max(500).optional().or(z.literal("")),
+});
+
 export const quizSubmitSchema = z.object({
   courseId: z.string().min(1),
   lectureId: z.string().nullable().optional(),

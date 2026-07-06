@@ -141,10 +141,28 @@ model Lecture {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  progress  LectureProgress[]
-  questions Question[]
+  progress   LectureProgress[]
+  questions  Question[]
+  flashcards Flashcard[]
 
   @@index([courseId])
+}
+
+// A study flashcard attached to a lecture (front = prompt, back = answer).
+model Flashcard {
+  id    String  @id @default(cuid())
+  front String  @db.Text
+  back  String  @db.Text
+  hint  String? @db.Text
+  order Int     @default(0)
+
+  lectureId String
+  lecture   Lecture @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lectureId])
 }
 
 model Enrollment {

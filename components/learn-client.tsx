@@ -10,6 +10,7 @@ import {
   Circle,
   FileText,
   HelpCircle,
+  Layers,
   Loader2,
   PlayCircle,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { QuizPanel, type QuizQuestion } from "@/components/quiz-panel";
+import { FlashcardDeck, type Flashcard } from "@/components/flashcard-deck";
 import { CaptureGuard } from "@/components/capture-guard";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +55,7 @@ export interface LecturePlay {
   title: string;
   hasVideo: boolean;
   hasPdf: boolean;
+  hasFlashcards: boolean;
   duration: number;
 }
 
@@ -63,6 +66,7 @@ export function LearnClient({
   courseTitle,
   lectures,
   lectureQuestions,
+  lectureFlashcards,
   courseQuestions,
   initialCompleted,
   watermark,
@@ -71,12 +75,14 @@ export function LearnClient({
   courseTitle: string;
   lectures: LecturePlay[];
   lectureQuestions: Record<string, QuizQuestion[]>;
+  lectureFlashcards: Record<string, Flashcard[]>;
   courseQuestions: QuizQuestion[];
   initialCompleted: string[];
   watermark: string;
 }) {
   const t = useTranslations("player");
   const tq = useTranslations("quiz");
+  const tf = useTranslations("flashcards");
   const [completed, setCompleted] = useState<Set<string>>(
     new Set(initialCompleted),
   );
@@ -112,9 +118,10 @@ export function LearnClient({
     const list: string[] = [];
     if (current.hasVideo) list.push("video");
     if (current.hasPdf) list.push("pdf");
+    if ((lectureFlashcards[current.id]?.length ?? 0) > 0) list.push("flashcards");
     if ((lectureQuestions[current.id]?.length ?? 0) > 0) list.push("quiz");
     return list;
-  }, [current, lectureQuestions]);
+  }, [current, lectureQuestions, lectureFlashcards]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -157,6 +164,7 @@ export function LearnClient({
                 </span>
                 {l.hasVideo && <PlayCircle className="h-3.5 w-3.5 text-muted-foreground" />}
                 {l.hasPdf && <FileText className="h-3.5 w-3.5 text-muted-foreground" />}
+                {l.hasFlashcards && <Layers className="h-3.5 w-3.5 text-primary" />}
               </button>
             );
           })}
@@ -216,6 +224,12 @@ export function LearnClient({
                   {current.hasPdf && (
                     <TabsTrigger value="pdf">{t("lectureMaterials")}</TabsTrigger>
                   )}
+                  {(lectureFlashcards[current.id]?.length ?? 0) > 0 && (
+                    <TabsTrigger value="flashcards">
+                      <Layers className="h-4 w-4" />
+                      {tf("title")}
+                    </TabsTrigger>
+                  )}
                   {(lectureQuestions[current.id]?.length ?? 0) > 0 && (
                     <TabsTrigger value="quiz">{tq("title")}</TabsTrigger>
                   )}
@@ -236,6 +250,16 @@ export function LearnClient({
                     <CaptureGuard>
                       <PdfViewer lectureId={current.id} watermark={watermark} />
                     </CaptureGuard>
+                  </TabsContent>
+                )}
+                {(lectureFlashcards[current.id]?.length ?? 0) > 0 && (
+                  <TabsContent value="flashcards" className="pt-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">
+                        {tf("studyTitle")}
+                      </h3>
+                    </div>
+                    <FlashcardDeck cards={lectureFlashcards[current.id] ?? []} />
                   </TabsContent>
                 )}
                 {(lectureQuestions[current.id]?.length ?? 0) > 0 && (

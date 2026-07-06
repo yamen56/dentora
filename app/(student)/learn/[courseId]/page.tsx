@@ -25,7 +25,10 @@ export default async function LearnPage({
   const course = await prisma.course.findUnique({
     where: { id: params.courseId },
     include: {
-      lectures: { orderBy: { order: "asc" } },
+      lectures: {
+        orderBy: { order: "asc" },
+        include: { flashcards: { orderBy: { order: "asc" } } },
+      },
       questions: true,
     },
   });
@@ -68,8 +71,24 @@ export default async function LearnPage({
     title: l.title,
     hasVideo: Boolean(l.videoUrl || l.videoPublicId),
     hasPdf: Boolean(l.pdfUrl || l.pdfPublicId),
+    hasFlashcards: l.flashcards.length > 0,
     duration: l.duration,
   }));
+
+  const lectureFlashcards: Record<
+    string,
+    { id: string; front: string; back: string; hint: string | null }[]
+  > = {};
+  for (const l of course.lectures) {
+    if (l.flashcards.length > 0) {
+      lectureFlashcards[l.id] = l.flashcards.map((f) => ({
+        id: f.id,
+        front: f.front,
+        back: f.back,
+        hint: f.hint,
+      }));
+    }
+  }
 
   const watermark = `${dbUser?.name ?? user.name ?? ""}\n${dbUser?.phone ?? ""}`;
 
@@ -80,6 +99,7 @@ export default async function LearnPage({
         courseTitle={pick(locale, course.titleEn, course.titleAr)}
         lectures={lectures}
         lectureQuestions={lectureQuestions}
+        lectureFlashcards={lectureFlashcards}
         courseQuestions={courseQuestions}
         initialCompleted={completed}
         watermark={watermark}

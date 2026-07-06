@@ -26,6 +26,7 @@ import { Progress } from "@/components/ui/progress";
 import { CourseForm } from "@/components/instructor/course-form";
 import { LectureManager } from "@/components/instructor/lecture-manager";
 import { QuestionManager } from "@/components/instructor/question-manager";
+import { FlashcardManager } from "@/components/instructor/flashcard-manager";
 import { CourseActions } from "@/components/instructor/course-actions";
 import { pick } from "@/lib/i18n-helpers";
 
@@ -36,6 +37,7 @@ export default async function ManageCoursePage({
 }) {
   const user = await requireRole("INSTRUCTOR");
   const t = await getTranslations("instructor");
+  const tf = await getTranslations("flashcards");
   const locale = await getLocale();
 
   const course = await prisma.course
@@ -68,6 +70,23 @@ export default async function ManageCoursePage({
   const categories = await prisma.category
     .findMany({ orderBy: { nameEn: "asc" } })
     .catch(() => []);
+
+  const flashcards = await prisma.flashcard
+    .findMany({
+      where: { lecture: { courseId: course.id } },
+      orderBy: [{ lectureId: "asc" }, { order: "asc" }],
+      select: { id: true, front: true, back: true, hint: true, lectureId: true },
+    })
+    .catch(
+      () =>
+        [] as {
+          id: string;
+          front: string;
+          back: string;
+          hint: string | null;
+          lectureId: string;
+        }[],
+    );
 
   // Completion analytics
   const lectureIds = course.lectures.map((l) => l.id);
@@ -150,6 +169,7 @@ export default async function ManageCoursePage({
           <TabsTrigger value="details">{t("courseDetails")}</TabsTrigger>
           <TabsTrigger value="lectures">{t("lectures")}</TabsTrigger>
           <TabsTrigger value="questions">{t("questions")}</TabsTrigger>
+          <TabsTrigger value="flashcards">{tf("title")}</TabsTrigger>
           <TabsTrigger value="students">{t("students")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("analytics")}</TabsTrigger>
         </TabsList>
@@ -185,6 +205,16 @@ export default async function ManageCoursePage({
               points: q.points,
               lectureId: q.lectureId,
             }))}
+          />
+        </TabsContent>
+
+        <TabsContent value="flashcards" className="pt-4">
+          <FlashcardManager
+            lectures={course.lectures.map((l) => ({
+              id: l.id,
+              title: l.title,
+            }))}
+            initialFlashcards={flashcards}
           />
         </TabsContent>
 
