@@ -188,7 +188,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="px-4 py-1">
               {t("heroBadge")}
             </Badge>
-            <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
+            <h1 className="max-w-2xl text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
               {t("heroTitle1")}
               <span className="block text-primary">
                 {t("heroTitleAccent")}
@@ -238,7 +238,7 @@ export default async function HomePage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-background/60 rtl:tracking-normal">
             {t("manifestoKicker")}
           </p>
-          <p className="mx-auto mt-4 max-w-3xl text-2xl font-bold leading-snug sm:text-3xl">
+          <p className="mx-auto mt-4 max-w-3xl text-balance text-2xl font-bold leading-snug sm:text-3xl">
             {t("manifestoLine")}
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-background/70">

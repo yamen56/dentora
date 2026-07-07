@@ -264,7 +264,7 @@ export default async function AdminPage() {
                           {pick(locale, a.course.titleEn, a.course.titleAr)}
                         </TableCell>
                         <TableCell className="max-w-[16rem] truncate text-sm text-muted-foreground">
-                          {a.note || "—"}
+                          {a.note || "-"}
                         </TableCell>
                         <TableCell>{fmtDate.format(a.createdAt)}</TableCell>
                         <TableCell>

@@ -23,7 +23,7 @@ export async function Navbar() {
               width={641}
               height={161}
               priority
-              className="h-11 w-auto dark:brightness-0 dark:invert"
+              className="h-9 w-auto dark:brightness-0 dark:invert sm:h-11"
             />
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
@@ -71,7 +71,7 @@ export async function Navbar() {
             />
           ) : (
             <div className="flex items-center gap-2 ps-1">
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
                 <Link href="/login">{t("login")}</Link>
               </Button>
               <Button asChild size="sm">

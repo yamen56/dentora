@@ -245,8 +245,8 @@ export default async function ManageCoursePage({
                           {e.user.name}
                         </TableCell>
                         <TableCell>{e.user.email}</TableCell>
-                        <TableCell>{e.user.phone ?? "—"}</TableCell>
-                        <TableCell>{e.user.university ?? "—"}</TableCell>
+                        <TableCell>{e.user.phone ?? "-"}</TableCell>
+                        <TableCell>{e.user.university ?? "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -296,7 +296,7 @@ export default async function ManageCoursePage({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {avgQuizPct === null ? "—" : `${avgQuizPct}%`}
+                  {avgQuizPct === null ? "-" : `${avgQuizPct}%`}
                 </p>
               </CardContent>
             </Card>
