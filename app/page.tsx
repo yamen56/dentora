@@ -33,6 +33,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CourseCard } from "@/components/course-card";
+import { HeroGraph } from "@/components/hero-graph";
 import { categoryName } from "@/lib/i18n-helpers";
 import { initials } from "@/lib/utils";
 
@@ -164,7 +165,7 @@ export default async function HomePage() {
     { icon: PlayCircle, label: t("statsLectures"), value: stats.lectureCount },
   ];
 
-  const faqs = [1, 2, 3, 4, 5].map((i) => ({
+  const faqs = [1, 2, 3, 4, 5, 6].map((i) => ({
     q: t(`faq${i}Q`),
     a: t(`faq${i}A`),
   }));
@@ -185,9 +186,11 @@ export default async function HomePage() {
             <Badge variant="secondary" className="px-4 py-1">
               {t("heroBadge")}
             </Badge>
-            <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
-              {t("heroTitle1")}{" "}
-              <span className="text-primary">{t("heroTitleAccent")}</span>
+            <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
+              {t("heroTitle1")}
+              <span className="block text-primary">
+                {t("heroTitleAccent")}
+              </span>
             </h1>
             <p className="max-w-xl text-lg text-muted-foreground">
               {t("heroSubtitle")}
@@ -200,78 +203,46 @@ export default async function HomePage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="/register">{t("becomeInstructor")}</Link>
+                <Link href="/register">{t("heroJoin")}</Link>
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">{t("heroNote")}</p>
           </div>
 
-          {/* Decorative product mock */}
-          <div
-            className="relative mx-auto hidden w-full max-w-md lg:block"
-            aria-hidden="true"
-          >
-            <div className="rounded-2xl border bg-card p-5 shadow-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <PlayCircle className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{t("mockCourse")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("mockLectureCount")}
-                    </p>
-                  </div>
-                </div>
-                <Badge variant="success">{t("mockEnrolled")}</Badge>
-              </div>
-              <div className="mt-4 space-y-2">
-                {[
-                  { label: t("mockLecture1"), done: true },
-                  { label: t("mockLecture2"), done: true },
-                  { label: t("mockLecture3"), done: false },
-                ].map((l) => (
-                  <div
-                    key={l.label}
-                    className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
-                  >
-                    {l.done ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                    ) : (
-                      <PlayCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
-                    <span className="truncate">{l.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4">
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div className="h-full w-2/3 rounded-full bg-primary" />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("mockProgress")}
-                </p>
-              </div>
-            </div>
-
-            <div className="absolute -end-6 -top-6 rounded-xl border bg-card px-4 py-3 shadow-md">
-              <div className="flex items-center gap-2">
-                <ClipboardCheck className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-xs font-semibold">{t("mockQuiz")}</p>
-                  <p className="text-xs text-muted-foreground">9/10</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute -bottom-5 -start-6 rounded-xl border bg-card px-4 py-3 shadow-md">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                <p className="text-xs font-semibold">{t("mockProtected")}</p>
-              </div>
+          {/* Knowledge graph: two curricula weaving into one source */}
+          <div className="relative mx-auto hidden w-full max-w-md lg:block">
+            <div className="relative h-[430px] overflow-hidden rounded-2xl border bg-card shadow-lg">
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(70% 70% at 72% 50%, hsl(var(--primary)/0.06), transparent)",
+                }}
+              />
+              <HeroGraph
+                labels={{
+                  uni: t("heroGraphUni"),
+                  step1: t("heroGraphStep1"),
+                  one: t("heroGraphOne"),
+                }}
+              />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Manifesto — the no-memorization rule, stated once, loudly */}
+      <section className="border-b bg-foreground text-background">
+        <div className="container py-14 text-center sm:py-16">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-background/60 rtl:tracking-normal">
+            {t("manifestoKicker")}
+          </p>
+          <p className="mx-auto mt-4 max-w-3xl text-2xl font-bold leading-snug sm:text-3xl">
+            {t("manifestoLine")}
+          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-background/70">
+            {t("manifestoSub")}
+          </p>
         </div>
       </section>
 
@@ -409,52 +380,74 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Lecture → USMLE mock */}
-          <div
-            className="mx-auto w-full max-w-md lg:order-first"
-            aria-hidden="true"
-          >
+          {/* Coverage map: two curricula merged into one source */}
+          <div className="mx-auto w-full max-w-md lg:order-first">
             <div className="rounded-2xl border bg-card p-6 shadow-lg">
-              {/* Completed lecture */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {t("usmleMockLecture")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("usmleMockDone")}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border bg-background p-4">
+                  <BookOpen className="h-5 w-5 text-primary" />
+                  <p className="mt-2 text-sm font-semibold leading-snug">
+                    {t("coverageUni")}
+                  </p>
                 </div>
-                <Badge variant="success">{t("usmleMockBadge")}</Badge>
+                <div className="rounded-xl border bg-background p-4">
+                  <GraduationCap className="h-5 w-5 text-secondary" />
+                  <p className="mt-2 text-sm font-semibold leading-snug">
+                    {t("coverageStep1")}
+                  </p>
+                </div>
               </div>
 
-              {/* Divider */}
-              <div className="my-5 border-t border-dashed" />
+              <svg
+                viewBox="0 0 200 36"
+                preserveAspectRatio="none"
+                className="mx-auto h-9 w-full text-border"
+                aria-hidden="true"
+                fill="none"
+              >
+                <path
+                  d="M50 0 C 50 22, 100 14, 100 36"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M150 0 C 150 22, 100 14, 100 36"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+              </svg>
 
-              {/* USMLE Step 1 callout */}
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
-                    S1
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wide text-primary">
-                    {t("usmleMockTag")}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Layers className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="font-semibold">{t("coverageMerged")}</p>
                 </div>
-                <p className="text-sm leading-relaxed">
-                  {t("usmleMockPoint")}
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("coverageMergedDesc")}
                 </p>
               </div>
 
-              {/* Level chip */}
-              <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                <GraduationCap className="h-4 w-4" />
-                <span>{t("usmleMockLevel")}</span>
+              <svg
+                viewBox="0 0 200 24"
+                preserveAspectRatio="none"
+                className="mx-auto h-6 w-full text-border"
+                aria-hidden="true"
+                fill="none"
+              >
+                <path d="M100 0 V 24" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2.5 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                  <span>{t("coverageExamUni")}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2.5 text-sm font-medium">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                  <span>{t("coverageExamBoard")}</span>
+                </div>
               </div>
             </div>
           </div>
