@@ -3,75 +3,53 @@
 import { useEffect, useRef } from "react";
 
 type HeroGraphProps = {
-  labels: { uni: string; step1: string; one: string };
+  labels: { loose: string; connected: string };
 };
 
 /*
- * Hero signature: two particle streams — university lectures (crimson) and
- * official Step 1 material (violet) — flow in and assemble into a single
- * connected knowledge graph. Plain canvas, no dependencies. Pauses when
+ * Hero signature: scattered, dim dots — loose memorized facts — get reached
+ * one by one from a central concept, settle, light up, and end as a single
+ * connected web of understanding. Plain canvas, no dependencies. Pauses when
  * off-screen and renders one static frame under prefers-reduced-motion.
  */
 
 // Normalized coordinates (0..1); mirrored automatically for RTL.
-const NODES: [number, number][] = [
-  [0.56, 0.22],
-  [0.72, 0.16],
-  [0.87, 0.26],
-  [0.5, 0.4],
-  [0.66, 0.36],
-  [0.83, 0.44],
-  [0.57, 0.55],
-  [0.74, 0.57],
-  [0.9, 0.62],
-  [0.52, 0.71],
-  [0.68, 0.75],
-  [0.85, 0.78],
-  [0.71, 0.46],
+// Index 0 is the hub; every other node lists the node that "explains" it.
+const NODES: { x: number; y: number; parent: number }[] = [
+  { x: 0.5, y: 0.48, parent: -1 },
+  { x: 0.34, y: 0.36, parent: 0 },
+  { x: 0.64, y: 0.32, parent: 0 },
+  { x: 0.68, y: 0.58, parent: 0 },
+  { x: 0.38, y: 0.62, parent: 0 },
+  { x: 0.2, y: 0.24, parent: 1 },
+  { x: 0.5, y: 0.18, parent: 2 },
+  { x: 0.78, y: 0.2, parent: 2 },
+  { x: 0.86, y: 0.42, parent: 3 },
+  { x: 0.84, y: 0.72, parent: 3 },
+  { x: 0.62, y: 0.8, parent: 3 },
+  { x: 0.36, y: 0.84, parent: 4 },
+  { x: 0.16, y: 0.7, parent: 4 },
+  { x: 0.12, y: 0.46, parent: 1 },
+  { x: 0.28, y: 0.1, parent: 5 },
+  { x: 0.72, y: 0.08, parent: 7 },
 ];
 
-const EDGES: [number, number][] = [
-  [0, 1],
-  [1, 2],
-  [0, 4],
+// Extra connections that appear once the web has formed.
+const CROSS_EDGES: [number, number][] = [
   [1, 4],
-  [2, 5],
-  [4, 12],
-  [3, 4],
-  [3, 6],
-  [5, 12],
-  [12, 7],
-  [12, 6],
-  [5, 8],
-  [7, 8],
-  [6, 9],
-  [6, 10],
-  [7, 10],
-  [9, 10],
+  [2, 3],
+  [6, 7],
+  [8, 9],
   [10, 11],
-  [8, 11],
+  [12, 13],
 ];
 
-// Stream origins: index 0 = university (primary), 1 = Step 1 (secondary).
-const SOURCES: [number, number][] = [
-  [0.08, 0.24],
-  [0.08, 0.76],
-];
+const REVEAL_START = 500;
+const REVEAL_STEP = 160;
+const EDGE_GROW = 450;
+const CROSS_START = REVEAL_START + (NODES.length - 1) * REVEAL_STEP + EDGE_GROW;
 
-type Particle = {
-  sx: number;
-  sy: number;
-  cx: number;
-  cy: number;
-  tx: number;
-  ty: number;
-  p: number;
-  dur: number;
-  delay: number;
-  stream: 0 | 1;
-  node: number;
-  ambient: boolean;
-};
+type Pulse = { a: number; b: number; p: number };
 
 export function HeroGraph({ labels }: HeroGraphProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -105,52 +83,44 @@ export function HeroGraph({ labels }: HeroGraphProps) {
     let reduced = false;
     let time = 0;
 
-    const arrived = NODES.map(() => false);
+    // edgeP[i] is the growth of the edge feeding node i (i >= 1). An edge only
+    // starts growing once its scheduled time arrives AND its parent is lit, so
+    // the reveal always cascades outward without jumps.
+    const edgeStart = NODES.map((_, i) => REVEAL_START + (i - 1) * REVEAL_STEP);
+    const edgeP = NODES.map(() => 0);
+    const crossP = CROSS_EDGES.map(() => 0);
     const lit = NODES.map(() => 0);
-    const flash = NODES.map(() => 0);
-    const edgeP = EDGES.map(() => 0);
-    let particles: Particle[] = [];
-    let ambientIn = 1200;
+    const settle = NODES.map(() => 0);
+    let pulses: Pulse[] = [];
+    let pulseIn = 1600;
 
-    const makeParticle = (node: number, delay: number, ambient: boolean): Particle => {
-      const stream = (node % 2) as 0 | 1;
-      const [sx, sy] = SOURCES[stream];
-      const [tx, ty] = NODES[node];
-      const dist = Math.hypot(tx - sx, ty - sy);
-      return {
-        sx,
-        sy,
-        cx: 0.34,
-        cy: (sy + ty) / 2 + (node % 2 ? 0.07 : -0.07),
-        tx,
-        ty,
-        p: 0,
-        dur: ambient ? 1500 : 900 + dist * 700,
-        delay,
-        stream,
-        node,
-        ambient,
-      };
+    const finished = () => crossP.every((p) => p >= 1);
+
+    const finishState = () => {
+      time = CROSS_START;
+      edgeP.fill(1);
+      crossP.fill(1);
+      lit.fill(1);
+      settle.fill(1);
+      pulses = [];
     };
 
     const resetAssembly = () => {
-      particles = NODES.map((_, i) => makeParticle(i, 250 + i * 140, false));
+      time = 0;
+      edgeP.fill(0);
+      crossP.fill(0);
+      lit.fill(0);
+      settle.fill(0);
+      pulses = [];
+      pulseIn = 1600;
     };
 
-    const finishState = () => {
-      particles = [];
-      arrived.fill(true);
-      lit.fill(1);
-      flash.fill(0);
-      edgeP.fill(1);
-    };
-
-    const bez = (pt: Particle, q: number): [number, number] => {
-      const u = 1 - q;
-      return [
-        u * u * pt.sx + 2 * u * q * pt.cx + q * q * pt.tx,
-        u * u * pt.sy + 2 * u * q * pt.cy + q * q * pt.ty,
-      ];
+    const nodePos = (i: number): [number, number] => {
+      // Unsettled facts drift; understanding holds them still.
+      const jitter = (1 - settle[i]) * 3;
+      const jx = jitter * Math.sin(time / 610 + i * 2.1);
+      const jy = jitter * Math.cos(time / 730 + i * 1.3);
+      return [mx(NODES[i].x) * w + jx, NODES[i].y * h + jy];
     };
 
     const dot = (x: number, y: number, r: number, hsl: string, a: number) => {
@@ -164,87 +134,90 @@ export function HeroGraph({ labels }: HeroGraphProps) {
     const drawFrame = (dt: number) => {
       time += dt;
 
-      // Advance particles
-      for (const pt of particles) {
-        if (pt.delay > 0) {
-          pt.delay -= dt;
-          continue;
+      // Hub lights first, on its own.
+      if (time > 400) lit[0] = Math.min(1, lit[0] + dt / 350);
+      for (let i = 1; i < NODES.length; i++) {
+        if (time >= edgeStart[i] && lit[NODES[i].parent] >= 1) {
+          edgeP[i] = Math.min(1, edgeP[i] + dt / EDGE_GROW);
         }
-        pt.p += dt / pt.dur;
-        if (pt.p >= 1) {
-          flash[pt.node] = 1;
-          if (!pt.ambient) arrived[pt.node] = true;
-        }
+        if (edgeP[i] >= 1) lit[i] = Math.min(1, lit[i] + dt / 350);
       }
-      particles = particles.filter((pt) => pt.p < 1);
-
-      for (let i = 0; i < NODES.length; i++) {
-        if (arrived[i]) lit[i] = Math.min(1, lit[i] + dt / 450);
-        flash[i] = Math.max(0, flash[i] - dt / 600);
-      }
-      EDGES.forEach(([a, b], i) => {
-        if (lit[a] > 0.55 && lit[b] > 0.55) {
-          edgeP[i] = Math.min(1, edgeP[i] + dt / 500);
+      CROSS_EDGES.forEach(([a, b], i) => {
+        if (time >= CROSS_START + i * 150 && lit[a] >= 1 && lit[b] >= 1) {
+          crossP[i] = Math.min(1, crossP[i] + dt / 400);
         }
       });
+      for (let i = 0; i < NODES.length; i++) {
+        if (lit[i] > 0) settle[i] = Math.min(1, settle[i] + dt / 450);
+      }
 
-      // Ambient flow once the graph has assembled
-      if (arrived.every(Boolean) && !reduced) {
-        ambientIn -= dt;
-        if (ambientIn <= 0) {
-          const node = Math.floor(Math.random() * NODES.length);
-          particles.push(makeParticle(node, 0, true));
-          ambientIn = 900 + Math.random() * 1100;
+      // Idle pulses: understanding keeps traveling the web.
+      if (finished() && !reduced) {
+        pulseIn -= dt;
+        if (pulseIn <= 0) {
+          const i = 1 + Math.floor(Math.random() * (NODES.length - 1));
+          pulses.push({ a: NODES[i].parent, b: i, p: 0 });
+          pulseIn = 1300 + Math.random() * 1200;
         }
+        for (const pu of pulses) pu.p += dt / 800;
+        pulses = pulses.filter((pu) => pu.p < 1);
       }
 
       // Draw
       ctx.clearRect(0, 0, w, h);
       const s = Math.min(w, h) / 420;
-
-      SOURCES.forEach(([x, y], i) => {
-        const col = i === 0 ? colors.primary : colors.secondary;
-        const pulse = reduced ? 1 : 1 + 0.15 * Math.sin(time / 700 + i * 2);
-        dot(mx(x) * w, y * h, 9 * s, col, 0.1);
-        dot(mx(x) * w, y * h, 3.5 * s * pulse, col, 0.9);
-      });
-
       ctx.lineWidth = Math.max(1, s);
-      EDGES.forEach(([a, b], i) => {
+
+      // Tree edges
+      for (let i = 1; i < NODES.length; i++) {
         const p = edgeP[i];
-        if (p <= 0) return;
-        const ax = mx(NODES[a][0]) * w;
-        const ay = NODES[a][1] * h;
-        const bx = mx(NODES[b][0]) * w;
-        const by = NODES[b][1] * h;
+        if (p <= 0) continue;
+        const [ax, ay] = nodePos(NODES[i].parent);
+        const [bx, by] = nodePos(i);
         ctx.beginPath();
         ctx.moveTo(ax, ay);
         ctx.lineTo(ax + (bx - ax) * p, ay + (by - ay) * p);
         ctx.strokeStyle = `hsl(${colors.line} / ${0.35 * p})`;
         ctx.stroke();
-      });
-
-      for (const pt of particles) {
-        if (pt.delay > 0) continue;
-        const col = pt.stream === 0 ? colors.primary : colors.secondary;
-        for (let k = 0; k < 3; k++) {
-          const q = pt.p - k * 0.04;
-          if (q <= 0) continue;
-          const [x, y] = bez(pt, q);
-          const base = pt.ambient ? 0.45 : 0.85;
-          dot(mx(x) * w, y * h, (2.4 - k * 0.6) * s, col, base * (1 - k * 0.3));
-        }
       }
 
-      NODES.forEach(([x, y], i) => {
-        const a = lit[i];
-        if (a <= 0) return;
-        const col = i % 2 === 0 ? colors.primary : colors.secondary;
-        const pulse = reduced ? 1 : 1 + 0.08 * Math.sin(time / 900 + i * 1.7);
-        const r = (i === 12 ? 4.4 : 3.2) * s * pulse;
-        dot(mx(x) * w, y * h, r * 3, col, 0.07 * a + flash[i] * 0.15);
-        dot(mx(x) * w, y * h, r, col, 0.6 * a + flash[i] * 0.35);
+      // Cross edges, once the tree is up
+      CROSS_EDGES.forEach(([a, b], i) => {
+        const p = crossP[i];
+        if (p <= 0) return;
+        const [ax, ay] = nodePos(a);
+        const [bx, by] = nodePos(b);
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ax + (bx - ax) * p, ay + (by - ay) * p);
+        ctx.strokeStyle = `hsl(${colors.line} / ${0.25 * p})`;
+        ctx.stroke();
       });
+
+      // Traveling pulses
+      for (const pu of pulses) {
+        const [ax, ay] = nodePos(pu.a);
+        const [bx, by] = nodePos(pu.b);
+        const col = pu.b % 2 === 0 ? colors.primary : colors.secondary;
+        const fade = Math.sin(pu.p * Math.PI);
+        dot(ax + (bx - ax) * pu.p, ay + (by - ay) * pu.p, 2.2 * s, col, 0.8 * fade);
+      }
+
+      // Nodes: dim scattered facts → lit, settled understanding
+      for (let i = 0; i < NODES.length; i++) {
+        const [x, y] = nodePos(i);
+        const a = lit[i];
+        if (a < 1) {
+          dot(x, y, 2.5 * s, colors.line, 0.35 * (1 - a));
+        }
+        if (a > 0) {
+          const col = i % 2 === 0 ? colors.primary : colors.secondary;
+          const pulse = reduced ? 1 : 1 + 0.08 * Math.sin(time / 900 + i * 1.7);
+          const r = (i === 0 ? 4.4 : 3.2) * s * pulse;
+          dot(x, y, r * 3, col, 0.07 * a);
+          dot(x, y, r, col, 0.6 * a);
+        }
+      }
     };
 
     const stop = () => {
@@ -320,17 +293,13 @@ export function HeroGraph({ labels }: HeroGraphProps) {
   return (
     <div ref={wrapRef} className="absolute inset-0" aria-hidden="true">
       <canvas ref={canvasRef} className="h-full w-full" />
-      <span className="absolute start-3 top-[10%] inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
-        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-        {labels.uni}
-      </span>
-      <span className="absolute bottom-[10%] start-3 inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
-        <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-        {labels.step1}
+      <span className="absolute start-3 top-3 inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur-sm">
+        <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" />
+        {labels.loose}
       </span>
       <span className="absolute bottom-3 end-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-background/85 px-2.5 py-1 text-[11px] font-semibold text-foreground backdrop-blur-sm">
         <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-primary to-secondary" />
-        {labels.one}
+        {labels.connected}
       </span>
     </div>
   );

@@ -13,6 +13,7 @@ import {
   Microscope,
   Brain,
   PlayCircle,
+  Repeat,
   Search,
   ShieldCheck,
   Stethoscope,
@@ -126,14 +127,15 @@ export default async function HomePage() {
     { icon: TrendingUp, title: t("feature3Title"), desc: t("feature3Desc") },
     { icon: ClipboardCheck, title: t("feature4Title"), desc: t("feature4Desc") },
     { icon: Stethoscope, title: t("feature5Title"), desc: t("feature5Desc") },
-    { icon: Users, title: t("feature6Title"), desc: t("feature6Desc") },
+    { icon: Brain, title: t("feature6Title"), desc: t("feature6Desc") },
   ];
 
   const insideItems = [
     { icon: PlayCircle, title: t("inside1Title"), desc: t("inside1Desc") },
     { icon: FileText, title: t("inside2Title"), desc: t("inside2Desc") },
     { icon: ClipboardCheck, title: t("inside3Title"), desc: t("inside3Desc") },
-    { icon: TrendingUp, title: t("inside4Title"), desc: t("inside4Desc") },
+    { icon: Repeat, title: t("inside4Title"), desc: t("inside4Desc") },
+    { icon: TrendingUp, title: t("inside5Title"), desc: t("inside5Desc") },
   ];
 
   const usmleItems = [
@@ -221,9 +223,8 @@ export default async function HomePage() {
               />
               <HeroGraph
                 labels={{
-                  uni: t("heroGraphUni"),
-                  step1: t("heroGraphStep1"),
-                  one: t("heroGraphOne"),
+                  loose: t("heroGraphLoose"),
+                  connected: t("heroGraphConnected"),
                 }}
               />
             </div>
