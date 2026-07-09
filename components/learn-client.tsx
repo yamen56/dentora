@@ -60,6 +60,7 @@ export interface LecturePlay {
 }
 
 const COURSE_QUIZ = "__course_quiz__";
+const COURSE_FLASHCARDS = "__course_flashcards__";
 
 export function LearnClient({
   courseId,
@@ -68,6 +69,7 @@ export function LearnClient({
   lectureQuestions,
   lectureFlashcards,
   courseQuestions,
+  courseFlashcards,
   initialCompleted,
   watermark,
 }: {
@@ -77,6 +79,7 @@ export function LearnClient({
   lectureQuestions: Record<string, QuizQuestion[]>;
   lectureFlashcards: Record<string, Flashcard[]>;
   courseQuestions: QuizQuestion[];
+  courseFlashcards: Flashcard[];
   initialCompleted: string[];
   watermark: string;
 }) {
@@ -169,6 +172,19 @@ export function LearnClient({
             );
           })}
 
+          {courseFlashcards.length > 0 && (
+            <button
+              onClick={() => setCurrentId(COURSE_FLASHCARDS)}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-md p-2 text-start text-sm transition-colors hover:bg-accent",
+                currentId === COURSE_FLASHCARDS && "bg-accent font-medium",
+              )}
+            >
+              <Layers className="h-4 w-4 shrink-0 text-primary" />
+              <span className="truncate">{tf("courseFlashcards")}</span>
+            </button>
+          )}
+
           {courseQuestions.length > 0 && (
             <button
               onClick={() => setCurrentId(COURSE_QUIZ)}
@@ -186,7 +202,18 @@ export function LearnClient({
 
       {/* Main content */}
       <section className="min-w-0 space-y-4">
-        {currentId === COURSE_QUIZ ? (
+        {currentId === COURSE_FLASHCARDS ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Layers className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-bold">{tf("courseFlashcards")}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {tf("courseFlashcardsHint")}
+            </p>
+            <FlashcardDeck cards={courseFlashcards} />
+          </div>
+        ) : currentId === COURSE_QUIZ ? (
           <div className="space-y-4">
             <h2 className="text-xl font-bold">{tq("courseQuiz")}</h2>
             <QuizPanel

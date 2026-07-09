@@ -16,12 +16,24 @@ export async function PATCH(
   }
   const d = parsed.data;
 
+  // A flashcard can be moved between the whole course and a specific lecture.
+  // When lectureId is provided, ensure it belongs to the flashcard's course.
+  const lectureId = d.lectureId === undefined ? undefined : d.lectureId ?? null;
+  if (lectureId) {
+    const lecture = await prisma.lecture.findFirst({
+      where: { id: lectureId, courseId: res.flashcard.courseId },
+      select: { id: true },
+    });
+    if (!lecture) return json({ error: "invalidLecture" }, 400);
+  }
+
   const flashcard = await prisma.flashcard.update({
     where: { id: params.id },
     data: {
       front: d.front.trim(),
       back: d.back.trim(),
       hint: d.hint?.trim() || null,
+      ...(lectureId === undefined ? {} : { lectureId }),
     },
   });
 

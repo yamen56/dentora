@@ -29,7 +29,7 @@ export interface FlashcardRow {
   front: string;
   back: string;
   hint: string | null;
-  lectureId: string;
+  lectureId: string | null;
 }
 
 interface LectureLite {
@@ -37,10 +37,14 @@ interface LectureLite {
   title: string;
 }
 
+const WHOLE_COURSE = "__course__";
+
 export function FlashcardManager({
+  courseId,
   lectures,
   initialFlashcards,
 }: {
+  courseId: string;
   lectures: LectureLite[];
   initialFlashcards: FlashcardRow[];
 }) {
@@ -53,18 +57,33 @@ export function FlashcardManager({
     front: "",
     back: "",
     hint: "",
-    lectureId: lectures[0]?.id ?? "",
+    lectureId: WHOLE_COURSE,
   });
 
   const byLecture = useMemo(() => {
     const map = new Map<string, FlashcardRow[]>();
     for (const c of cards) {
-      (map.get(c.lectureId) ?? map.set(c.lectureId, []).get(c.lectureId)!).push(
-        c,
-      );
+      const key = c.lectureId ?? WHOLE_COURSE;
+      (map.get(key) ?? map.set(key, []).get(key)!).push(c);
     }
     return map;
   }, [cards]);
+
+  // Section order: whole-course bucket first, then each lecture that has cards.
+  const sections = useMemo(() => {
+    const list: { id: string; title: string; cards: FlashcardRow[] }[] = [];
+    const courseCards = byLecture.get(WHOLE_COURSE);
+    if (courseCards && courseCards.length > 0) {
+      list.push({ id: WHOLE_COURSE, title: t("wholeCourse"), cards: courseCards });
+    }
+    for (const l of lectures) {
+      const list2 = byLecture.get(l.id);
+      if (list2 && list2.length > 0) {
+        list.push({ id: l.id, title: l.title, cards: list2 });
+      }
+    }
+    return list;
+  }, [byLecture, lectures, t]);
 
   function openNew() {
     setEditingId(null);
@@ -72,7 +91,7 @@ export function FlashcardManager({
       front: "",
       back: "",
       hint: "",
-      lectureId: lectures[0]?.id ?? "",
+      lectureId: WHOLE_COURSE,
     });
     setOpen(true);
   }
@@ -83,31 +102,29 @@ export function FlashcardManager({
       front: c.front,
       back: c.back,
       hint: c.hint ?? "",
-      lectureId: c.lectureId,
+      lectureId: c.lectureId ?? WHOLE_COURSE,
     });
     setOpen(true);
   }
 
   async function save() {
-    if (!form.lectureId) {
-      toast.error(t("pickLecture"));
-      return;
-    }
     if (form.front.trim().length < 1 || form.back.trim().length < 1) {
       toast.error(t("needBothSides"));
       return;
     }
 
+    const lectureId = form.lectureId === WHOLE_COURSE ? null : form.lectureId;
     const payload = {
       front: form.front.trim(),
       back: form.back.trim(),
       hint: form.hint.trim(),
+      lectureId,
     };
 
     setSaving(true);
     const url = editingId
       ? `/api/flashcards/${editingId}`
-      : `/api/lectures/${form.lectureId}/flashcards`;
+      : `/api/courses/${courseId}/flashcards`;
     const res = await fetch(url, {
       method: editingId ? "PATCH" : "POST",
       headers: { "content-type": "application/json" },
@@ -124,7 +141,7 @@ export function FlashcardManager({
       front: data.flashcard.front,
       back: data.flashcard.back,
       hint: data.flashcard.hint,
-      lectureId: data.flashcard.lectureId,
+      lectureId: data.flashcard.lectureId ?? null,
     };
     setCards((prev) =>
       editingId
@@ -150,75 +167,64 @@ export function FlashcardManager({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">{t("managerHint")}</p>
-        <Button onClick={openNew} disabled={lectures.length === 0}>
+        <Button onClick={openNew}>
           <Plus className="h-4 w-4" />
           {t("addCard")}
         </Button>
       </div>
 
-      {lectures.length === 0 ? (
-        <p className="rounded-lg border border-dashed py-12 text-center text-muted-foreground">
-          {t("needLectureFirst")}
-        </p>
-      ) : cards.length === 0 ? (
+      {cards.length === 0 ? (
         <p className="rounded-lg border border-dashed py-12 text-center text-muted-foreground">
           {t("noCards")}
         </p>
       ) : (
         <div className="space-y-6">
-          {lectures
-            .filter((l) => (byLecture.get(l.id)?.length ?? 0) > 0)
-            .map((l) => {
-              const list = byLecture.get(l.id) ?? [];
-              return (
-                <div key={l.id} className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-primary" />
-                    <h3 className="font-semibold">{l.title}</h3>
-                    <Badge variant="secondary">{list.length}</Badge>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {list.map((c) => (
-                      <div
-                        key={c.id}
-                        className="flex items-start gap-3 rounded-lg border bg-card p-3"
+          {sections.map((s) => (
+            <div key={s.id} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold">{s.title}</h3>
+                <Badge variant="secondary">{s.cards.length}</Badge>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {s.cards.map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-start gap-3 rounded-lg border bg-card p-3"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="font-medium">{c.front}</p>
+                      <p className="text-sm text-muted-foreground">{c.back}</p>
+                      {c.hint && (
+                        <p className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                          <Lightbulb className="h-3 w-3" />
+                          {c.hint}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => openEdit(c)}
                       >
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <p className="font-medium">{c.front}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {c.back}
-                          </p>
-                          {c.hint && (
-                            <p className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                              <Lightbulb className="h-3 w-3" />
-                              {c.hint}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex shrink-0 flex-col gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => openEdit(c)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            onClick={() => remove(c.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive"
+                        onClick={() => remove(c.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -231,16 +237,18 @@ export function FlashcardManager({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t("lecture")}</Label>
+              <Label>{t("attachTo")}</Label>
               <Select
                 value={form.lectureId}
                 onValueChange={(v) => setForm((f) => ({ ...f, lectureId: v }))}
-                disabled={!!editingId}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={WHOLE_COURSE}>
+                    {t("wholeCourse")}
+                  </SelectItem>
                   {lectures.map((l) => (
                     <SelectItem key={l.id} value={l.id}>
                       {l.title}

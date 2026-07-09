@@ -29,6 +29,11 @@ export default async function LearnPage({
         orderBy: { order: "asc" },
         include: { flashcards: { orderBy: { order: "asc" } } },
       },
+      // Course-wide flashcards (not tied to any single lecture).
+      flashcards: {
+        where: { lectureId: null },
+        orderBy: { order: "asc" },
+      },
       questions: true,
     },
   });
@@ -90,6 +95,19 @@ export default async function LearnPage({
     }
   }
 
+  // Flashcards that cover the whole course, plus every lecture's cards combined,
+  // so a student can study the entire course deck in one place.
+  const courseWideCards = course.flashcards.map((f) => ({
+    id: f.id,
+    front: f.front,
+    back: f.back,
+    hint: f.hint,
+  }));
+  const courseFlashcards = [
+    ...courseWideCards,
+    ...course.lectures.flatMap((l) => lectureFlashcards[l.id] ?? []),
+  ];
+
   const watermark = `${dbUser?.name ?? user.name ?? ""}\n${dbUser?.phone ?? ""}`;
 
   return (
@@ -101,6 +119,7 @@ export default async function LearnPage({
         lectureQuestions={lectureQuestions}
         lectureFlashcards={lectureFlashcards}
         courseQuestions={courseQuestions}
+        courseFlashcards={courseFlashcards}
         initialCompleted={completed}
         watermark={watermark}
       />

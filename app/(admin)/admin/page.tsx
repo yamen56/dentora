@@ -196,6 +196,7 @@ export default async function AdminPage() {
                           <div className="flex justify-end">
                             <InstructorActions
                               id={u.id}
+                              name={u.name}
                               status={u.instructorStatus}
                             />
                           </div>

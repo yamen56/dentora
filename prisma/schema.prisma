@@ -116,6 +116,7 @@ model Course {
   enrollments  Enrollment[]
   applications CourseApplication[]
   questions    Question[]
+  flashcards   Flashcard[]
   quizAttempts QuizAttempt[]
 
   @@index([categoryId])
@@ -148,7 +149,8 @@ model Lecture {
   @@index([courseId])
 }
 
-// A study flashcard attached to a lecture (front = prompt, back = answer).
+// A study flashcard (front = prompt, back = answer), attached either to a
+// single lecture or to the whole course.
 model Flashcard {
   id    String  @id @default(cuid())
   front String  @db.Text
@@ -156,12 +158,17 @@ model Flashcard {
   hint  String? @db.Text
   order Int     @default(0)
 
-  lectureId String
-  lecture   Lecture @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // null => attached to the whole course, otherwise to a specific lecture
+  lectureId String?
+  lecture   Lecture? @relation(fields: [lectureId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([courseId])
   @@index([lectureId])
 }
 

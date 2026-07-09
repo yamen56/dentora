@@ -73,6 +73,7 @@ export const flashcardSchema = z.object({
   front: z.string().min(1, "required").max(2000),
   back: z.string().min(1, "required").max(2000),
   hint: z.string().max(500).optional().or(z.literal("")),
+  lectureId: z.string().nullable().optional(),
 });
 
 export const quizSubmitSchema = z.object({

@@ -25,6 +25,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ProfileForm } from "@/components/instructor/profile-form";
 import { DocumentsPanel } from "@/components/instructor/documents-panel";
+import { StudentActions } from "@/components/instructor/student-actions";
 import { pick } from "@/lib/i18n-helpers";
 
 async function getData(instructorId: string) {
@@ -274,6 +275,9 @@ export default async function InstructorHome() {
                         <TableHead className="text-end">
                           {t("studentJoined")}
                         </TableHead>
+                        <TableHead className="text-end">
+                          {t("actions")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -298,6 +302,12 @@ export default async function InstructorHome() {
                           </TableCell>
                           <TableCell className="text-end text-sm text-muted-foreground">
                             {fmtDate.format(s.enrolledAt)}
+                          </TableCell>
+                          <TableCell className="text-end">
+                            <StudentActions
+                              enrollmentId={s.id}
+                              name={s.userName}
+                            />
                           </TableCell>
                         </TableRow>
                       ))}

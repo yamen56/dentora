@@ -28,6 +28,7 @@ import { LectureManager } from "@/components/instructor/lecture-manager";
 import { QuestionManager } from "@/components/instructor/question-manager";
 import { FlashcardManager } from "@/components/instructor/flashcard-manager";
 import { CourseActions } from "@/components/instructor/course-actions";
+import { StudentActions } from "@/components/instructor/student-actions";
 import { pick } from "@/lib/i18n-helpers";
 
 export default async function ManageCoursePage({
@@ -73,7 +74,7 @@ export default async function ManageCoursePage({
 
   const flashcards = await prisma.flashcard
     .findMany({
-      where: { lecture: { courseId: course.id } },
+      where: { courseId: course.id },
       orderBy: [{ lectureId: "asc" }, { order: "asc" }],
       select: { id: true, front: true, back: true, hint: true, lectureId: true },
     })
@@ -84,7 +85,7 @@ export default async function ManageCoursePage({
           front: string;
           back: string;
           hint: string | null;
-          lectureId: string;
+          lectureId: string | null;
         }[],
     );
 
@@ -210,6 +211,7 @@ export default async function ManageCoursePage({
 
         <TabsContent value="flashcards" className="pt-4">
           <FlashcardManager
+            courseId={course.id}
             lectures={course.lectures.map((l) => ({
               id: l.id,
               title: l.title,
@@ -236,6 +238,7 @@ export default async function ManageCoursePage({
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>University</TableHead>
+                      <TableHead className="text-end">{t("actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -247,6 +250,12 @@ export default async function ManageCoursePage({
                         <TableCell>{e.user.email}</TableCell>
                         <TableCell>{e.user.phone ?? "-"}</TableCell>
                         <TableCell>{e.user.university ?? "-"}</TableCell>
+                        <TableCell className="text-end">
+                          <StudentActions
+                            enrollmentId={e.id}
+                            name={e.user.name}
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

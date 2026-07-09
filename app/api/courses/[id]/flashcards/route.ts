@@ -1,13 +1,14 @@
-import { json, loadOwnedLecture } from "@/lib/api";
+import { json, loadOwnedCourse } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { flashcardSchema } from "@/lib/validations";
 
-// Create a flashcard on a lecture (instructor who owns it, or admin).
+// Create a flashcard on a course (instructor who owns it, or admin).
+// lectureId null => attached to the whole course.
 export async function POST(
   req: Request,
   { params }: { params: { id: string } },
 ) {
-  const res = await loadOwnedLecture(params.id);
+  const res = await loadOwnedCourse(params.id);
   if ("error" in res) return res.error;
 
   const body = await req.json().catch(() => null);
@@ -17,16 +18,25 @@ export async function POST(
   }
   const d = parsed.data;
 
+  const lectureId = d.lectureId ?? null;
+  if (lectureId) {
+    const lecture = await prisma.lecture.findFirst({
+      where: { id: lectureId, courseId: params.id },
+      select: { id: true },
+    });
+    if (!lecture) return json({ error: "invalidLecture" }, 400);
+  }
+
   const last = await prisma.flashcard.findFirst({
-    where: { lectureId: params.id },
+    where: { courseId: params.id, lectureId },
     orderBy: { order: "desc" },
     select: { order: true },
   });
 
   const flashcard = await prisma.flashcard.create({
     data: {
-      courseId: res.lecture.courseId,
-      lectureId: params.id,
+      courseId: params.id,
+      lectureId,
       front: d.front.trim(),
       back: d.back.trim(),
       hint: d.hint?.trim() || null,
