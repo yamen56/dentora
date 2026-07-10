@@ -10,11 +10,49 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://dentora-delta.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Why Medicine | Medical education, done right",
     template: "%s · Why Medicine",
   },
+  description:
+    "Online video courses built for medical school students, taught by practicing clinicians and academics. University curriculum and USMLE Step 1, taught for understanding — not memorization.",
+  keywords: [
+    "medical education",
+    "medical school courses",
+    "USMLE Step 1",
+    "medicine video lectures",
+    "دورات طبية",
+    "تعليم طبي",
+    "Why Medicine",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: "Why Medicine",
+    title: "Why Medicine | Medical education, done right",
+    description:
+      "Online video courses built for medical school students, taught by practicing clinicians and academics.",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Why Medicine | Medical education, done right",
+    description:
+      "Online video courses built for medical school students, taught by practicing clinicians and academics.",
+  },
+  robots: { index: true, follow: true },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Why Medicine",
+  url: siteUrl,
+  logo: `${siteUrl}/why-medicine-mark.png`,
   description:
     "Online video courses built for medical school students, taught by practicing clinicians and academics.",
 };
@@ -31,6 +69,10 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <div className="relative flex min-h-screen flex-col">

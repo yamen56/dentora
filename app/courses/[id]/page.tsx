@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { BookOpen, FileText, GraduationCap, Lock, PlayCircle, Users } from "lucide-react";
@@ -14,6 +15,46 @@ import { pick } from "@/lib/i18n-helpers";
 import { formatDuration } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const locale = await getLocale();
+  const course = await prisma.course
+    .findFirst({
+      where: { id: params.id, isPublished: true },
+      select: {
+        titleEn: true,
+        titleAr: true,
+        descriptionEn: true,
+        descriptionAr: true,
+        thumbnail: true,
+      },
+    })
+    .catch(() => null);
+  if (!course) return {};
+
+  const title = pick(locale, course.titleEn, course.titleAr);
+  const description = pick(
+    locale,
+    course.descriptionEn,
+    course.descriptionAr,
+  ).slice(0, 160);
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/courses/${params.id}` },
+    openGraph: {
+      title,
+      description,
+      url: `/courses/${params.id}`,
+      ...(course.thumbnail ? { images: [course.thumbnail] } : {}),
+    },
+  };
+}
 
 export default async function CourseDetailPage({
   params,
@@ -65,8 +106,36 @@ export default async function CourseDetailPage({
   const title = pick(locale, course.titleEn, course.titleAr);
   const description = pick(locale, course.descriptionEn, course.descriptionAr);
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://dentora-delta.vercel.app";
+  const courseJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: title,
+    description: description.slice(0, 300),
+    url: `${siteUrl}/courses/${course.id}`,
+    ...(course.thumbnail ? { image: course.thumbnail } : {}),
+    provider: {
+      "@type": "EducationalOrganization",
+      name: "Why Medicine",
+      url: siteUrl,
+    },
+    instructor: { "@type": "Person", name: course.instructor.name },
+    inLanguage: course.language === "AR" ? "ar" : "en",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      category: "Application-based enrollment",
+    },
+  };
+
   return (
     <div className="container grid gap-8 py-8 lg:grid-cols-3">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
+      />
       {/* Main */}
       <div className="space-y-6 lg:col-span-2">
         <div>

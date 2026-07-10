@@ -2,6 +2,7 @@ import { getApiUser, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { isEnrolled } from "@/lib/enroll";
 import { cloudinaryConfigured, signedDeliveryUrl } from "@/lib/cloudinary";
+import { bunnyConfigured, bunnyGuid, bunnyPlaybackUrl, isBunnyId } from "@/lib/bunny";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +27,22 @@ export async function GET(
     isOwner || lecture.isPreview || (await isEnrolled(user.id, lecture.courseId));
   if (!allowed) return json({ error: "forbidden" }, 403);
 
-  if (lecture.videoPublicId && cloudinaryConfigured) {
+  if (isBunnyId(lecture.videoPublicId) && bunnyConfigured) {
+    return json({
+      url: bunnyPlaybackUrl(bunnyGuid(lecture.videoPublicId as string)),
+    });
+  }
+  if (
+    lecture.videoPublicId &&
+    !isBunnyId(lecture.videoPublicId) &&
+    cloudinaryConfigured
+  ) {
     return json({
       url: signedDeliveryUrl(lecture.videoPublicId, "video", 60 * 60),
     });
   }
-  if (lecture.videoUrl) return json({ url: lecture.videoUrl });
+  if (lecture.videoUrl && !isBunnyId(lecture.videoUrl)) {
+    return json({ url: lecture.videoUrl });
+  }
   return json({ error: "noVideo" }, 404);
 }

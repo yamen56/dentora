@@ -40,6 +40,10 @@ import { initials } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  alternates: { canonical: "/" },
+};
+
 const categoryIcons = [
   Brain,
   Stethoscope,
@@ -212,8 +216,8 @@ export default async function HomePage() {
           </div>
 
           {/* Knowledge graph: two curricula weaving into one source */}
-          <div className="relative mx-auto hidden w-full max-w-md lg:block">
-            <div className="relative h-[430px] overflow-hidden rounded-2xl border bg-card shadow-lg">
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="relative h-[320px] overflow-hidden rounded-2xl border bg-card shadow-lg sm:h-[380px] lg:h-[430px]">
               <div
                 className="pointer-events-none absolute inset-0"
                 style={{
@@ -307,7 +311,7 @@ export default async function HomePage() {
 
           {/* Quiz mock */}
           <div
-            className="mx-auto hidden w-full max-w-md lg:block"
+            className="mx-auto w-full max-w-md"
             aria-hidden="true"
           >
             <div className="rounded-2xl border bg-card p-6 shadow-lg">

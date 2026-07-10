@@ -129,7 +129,7 @@ model Lecture {
   title         String
   description   String? @db.Text
   videoUrl      String?
-  videoPublicId String? // Cloudinary public id for signed delivery
+  videoPublicId String? // Cloudinary public id, or "bunny:<guid>" for Bunny Stream videos
   pdfUrl        String?
   pdfPublicId   String?
   order         Int     @default(0)

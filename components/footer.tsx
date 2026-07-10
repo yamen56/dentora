@@ -25,9 +25,16 @@ export async function Footer() {
             <Image
               src="/why-medicine-logo.png"
               alt={tc("appName")}
-              width={641}
-              height={161}
-              className="h-9 w-auto dark:brightness-0 dark:invert"
+              width={1443}
+              height={623}
+              className="h-14 w-auto dark:hidden"
+            />
+            <Image
+              src="/why-medicine-logo-white.png"
+              alt={tc("appName")}
+              width={1443}
+              height={623}
+              className="hidden h-14 w-auto dark:block"
             />
           </Link>
           <p className="max-w-sm text-sm text-muted-foreground">

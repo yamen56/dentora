@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { getCurrentUser, roleHome } from "@/lib/auth-helpers";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
+import { MobileNav } from "@/components/mobile-nav";
 import { UserMenu } from "@/components/user-menu";
 import { Button } from "@/components/ui/button";
 
@@ -12,51 +13,48 @@ export async function Navbar() {
   const user = await getCurrentUser();
   const t = await getTranslations("nav");
 
+  const links = [
+    { href: "/courses", label: t("courses") },
+    ...(user?.role === "STUDENT"
+      ? [{ href: "/dashboard", label: t("dashboard") }]
+      : []),
+    ...(user?.role === "INSTRUCTOR"
+      ? [{ href: "/instructor", label: t("instructor") }]
+      : []),
+    ...(user?.role === "ADMIN" ? [{ href: "/admin", label: t("admin") }] : []),
+  ];
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between gap-4">
+      <div className="container flex h-20 items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center" aria-label="Why Medicine">
             <Image
               src="/why-medicine-logo.png"
               alt="Why Medicine"
-              width={641}
-              height={161}
+              width={1443}
+              height={623}
               priority
-              className="h-9 w-auto dark:brightness-0 dark:invert sm:h-11"
+              className="h-14 w-auto dark:hidden sm:h-16"
+            />
+            <Image
+              src="/why-medicine-logo-white.png"
+              alt="Why Medicine"
+              width={1443}
+              height={623}
+              className="hidden h-14 w-auto dark:block sm:h-16"
             />
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
-            <Link
-              href="/courses"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("courses")}
-            </Link>
-            {user?.role === "STUDENT" && (
+            {links.map((l) => (
               <Link
-                href="/dashboard"
+                key={l.href}
+                href={l.href}
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
-                {t("dashboard")}
+                {l.label}
               </Link>
-            )}
-            {user?.role === "INSTRUCTOR" && (
-              <Link
-                href="/instructor"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("instructor")}
-              </Link>
-            )}
-            {user?.role === "ADMIN" && (
-              <Link
-                href="/admin"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {t("admin")}
-              </Link>
-            )}
+            ))}
           </nav>
         </div>
 
@@ -79,6 +77,10 @@ export async function Navbar() {
               </Button>
             </div>
           )}
+          <MobileNav
+            links={links}
+            login={user ? null : { href: "/login", label: t("login") }}
+          />
         </div>
       </div>
     </header>

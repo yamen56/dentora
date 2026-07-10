@@ -7,6 +7,10 @@ import { CourseCard } from "@/components/course-card";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  alternates: { canonical: "/courses" },
+};
+
 interface SearchParams {
   q?: string;
   category?: string;

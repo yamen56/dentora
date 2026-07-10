@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useCloudinaryUpload } from "@/lib/use-cloudinary-upload";
+import { useVideoUpload } from "@/lib/use-video-upload";
 import { cn } from "@/lib/utils";
 
 export interface MediaValue {
@@ -31,7 +32,13 @@ export function MediaUpload({
   label: string;
 }) {
   const t = useTranslations("instructor");
-  const { upload, uploading, progress } = useCloudinaryUpload();
+  const cloudinary = useCloudinaryUpload();
+  const video = useVideoUpload();
+  // Videos go to Bunny Stream when configured (falling back to Cloudinary
+  // inside the hook); images and PDFs stay on Cloudinary.
+  const isVideo = resourceType === "video";
+  const uploading = isVideo ? video.uploading : cloudinary.uploading;
+  const progress = isVideo ? video.progress : cloudinary.progress;
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -39,7 +46,9 @@ export function MediaUpload({
 
   async function doUpload(file: File) {
     try {
-      const res = await upload(file, resourceType);
+      const res = isVideo
+        ? await video.upload(file)
+        : await cloudinary.upload(file, resourceType);
       setFileName(file.name);
       onChange({ url: res.url, publicId: res.publicId, duration: res.duration });
       toast.success(t("uploadComplete"));

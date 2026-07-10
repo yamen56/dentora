@@ -24,6 +24,7 @@ export function WatermarkVideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const playerRef = useRef<Plyr | null>(null);
+  const hlsRef = useRef<{ destroy: () => void } | null>(null);
   const posRef = useRef({ x: 0.1, y: 0.1 });
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,30 @@ export function WatermarkVideoPlayer({
         const data = await res.json();
         if (cancelled || !videoRef.current || playerRef.current) return;
 
-        videoRef.current.src = data.url;
+        const url: string = data.url;
+        const videoEl = videoRef.current;
+
+        // Bunny Stream delivers HLS; browsers without native HLS need hls.js.
+        if (url.includes(".m3u8")) {
+          if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+            videoEl.src = url;
+          } else {
+            const { default: Hls } = await import("hls.js");
+            if (cancelled || !videoRef.current) return;
+            if (Hls.isSupported()) {
+              const hls = new Hls();
+              hlsRef.current = hls;
+              hls.loadSource(url);
+              hls.attachMedia(videoEl);
+            } else {
+              setError(true);
+              setLoading(false);
+              return;
+            }
+          }
+        } else {
+          videoEl.src = url;
+        }
 
         const player = new Plyr(videoRef.current, {
           speed: { selected: 1, options: [0.75, 1, 1.25, 1.5, 2] },
@@ -83,6 +107,8 @@ export function WatermarkVideoPlayer({
     load();
     return () => {
       cancelled = true;
+      hlsRef.current?.destroy();
+      hlsRef.current = null;
       playerRef.current?.destroy();
       playerRef.current = null;
     };
