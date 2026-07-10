@@ -22,11 +22,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserActions } from "@/components/admin/user-actions";
+import { ContactPhone } from "@/components/contact-phone";
 
 export interface AdminUserRow {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
   role: "STUDENT" | "INSTRUCTOR" | "ADMIN";
   isActive: boolean;
   joined: string; // pre-formatted for the current locale
@@ -43,7 +45,9 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
       if (role !== "ALL" && u.role !== role) return false;
       if (!q) return true;
       return (
-        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        (u.phone ?? "").replace(/\D/g, "").includes(q.replace(/\D/g, "") || q)
       );
     });
   }, [users, query, role]);
@@ -82,7 +86,7 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>{t("name")}</TableHead>
-              <TableHead>{t("email")}</TableHead>
+              <TableHead>{t("phone")}</TableHead>
               <TableHead>{t("role")}</TableHead>
               <TableHead>{t("joined")}</TableHead>
               <TableHead className="text-end">{t("status")}</TableHead>
@@ -91,8 +95,13 @@ export function UsersTable({ users }: { users: AdminUserRow[] }) {
           <TableBody>
             {filtered.map((u) => (
               <TableRow key={u.id}>
-                <TableCell className="font-medium">{u.name}</TableCell>
-                <TableCell>{u.email}</TableCell>
+                <TableCell>
+                  <div className="font-medium">{u.name}</div>
+                  <div className="text-xs text-muted-foreground">{u.email}</div>
+                </TableCell>
+                <TableCell>
+                  <ContactPhone phone={u.phone} />
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{u.role}</Badge>
                 </TableCell>

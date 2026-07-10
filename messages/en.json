@@ -460,6 +460,7 @@
     "noPending": "No pending instructor applications.",
     "name": "Name",
     "email": "Email",
+    "phone": "Phone",
     "role": "Role",
     "joined": "Joined",
     "status": "Status",

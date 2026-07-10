@@ -27,3 +27,16 @@ export function initials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+/**
+ * wa.me link for a stored phone number. Numbers are free-form in the DB
+ * (local "07…" or international "+962…"); WhatsApp needs digits with country
+ * code and no "+". Local numbers starting with a single 0 are assumed
+ * Jordanian (962).
+ */
+export function waPhoneHref(phone: string): string {
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  else if (digits.startsWith("0")) digits = `962${digits.slice(1)}`;
+  return `https://wa.me/${digits}`;
+}

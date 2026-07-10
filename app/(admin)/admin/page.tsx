@@ -25,6 +25,7 @@ import { AdminCourseActions } from "@/components/admin/admin-course-actions";
 import { CategoryManager } from "@/components/admin/category-manager";
 import { EnrollStudentForm } from "@/components/admin/enroll-student-form";
 import { ApplicationActions } from "@/components/application-actions";
+import { ContactPhone } from "@/components/contact-phone";
 import { pick } from "@/lib/i18n-helpers";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +66,7 @@ async function getData() {
         orderBy: { createdAt: "desc" },
         take: 100,
         include: {
-          user: { select: { name: true, email: true } },
+          user: { select: { name: true, email: true, phone: true } },
           course: { select: { titleEn: true, titleAr: true } },
         },
       }),
@@ -181,7 +182,7 @@ export default async function AdminPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("name")}</TableHead>
-                      <TableHead>{t("email")}</TableHead>
+                      <TableHead>{t("phone")}</TableHead>
                       <TableHead>{t("joined")}</TableHead>
                       <TableHead className="text-end">{t("status")}</TableHead>
                     </TableRow>
@@ -189,8 +190,15 @@ export default async function AdminPage() {
                   <TableBody>
                     {data.instructors.map((u) => (
                       <TableRow key={u.id}>
-                        <TableCell className="font-medium">{u.name}</TableCell>
-                        <TableCell>{u.email}</TableCell>
+                        <TableCell>
+                          <div className="font-medium">{u.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {u.email}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <ContactPhone phone={u.phone} />
+                        </TableCell>
                         <TableCell>{fmtDate.format(u.createdAt)}</TableCell>
                         <TableCell>
                           <div className="flex justify-end">
@@ -257,6 +265,9 @@ export default async function AdminPage() {
                       <TableRow key={a.id}>
                         <TableCell>
                           <div className="font-medium">{a.user.name}</div>
+                          <div className="text-sm">
+                            <ContactPhone phone={a.user.phone} />
+                          </div>
                           <div className="text-xs text-muted-foreground">
                             {a.user.email}
                           </div>
@@ -338,6 +349,7 @@ export default async function AdminPage() {
                   id: u.id,
                   name: u.name,
                   email: u.email,
+                  phone: u.phone,
                   role: u.role,
                   isActive: u.isActive,
                   joined: fmtDate.format(u.createdAt),
