@@ -29,7 +29,7 @@ export async function GET(
 
   if (isBunnyId(lecture.videoPublicId) && bunnyConfigured) {
     return json({
-      url: bunnyPlaybackUrl(bunnyGuid(lecture.videoPublicId as string)),
+      url: await bunnyPlaybackUrl(bunnyGuid(lecture.videoPublicId as string)),
     });
   }
   if (

@@ -82,16 +82,50 @@ export function tusUploadAuth(videoGuid: string, ttlSeconds = 60 * 60 * 6) {
 }
 
 /**
- * HLS playback URL for a video. When the library's token auth key is set the
- * URL is signed with a directory-scoped token (covers the playlist and every
- * segment) and expires; otherwise the plain URL is returned.
+ * The library has two independent protections: embed token auth (always on
+ * for us) and token auth on DIRECT file URLs. Path-style signed URLs 404 when
+ * the latter is off, and plain URLs 403 when it's on — so we probe the CDN
+ * (cached 5 min) and emit whichever form the library currently expects. That
+ * way flipping the toggle in the Bunny dashboard needs no redeploy.
  */
-export function bunnyPlaybackUrl(
+let urlAuthCache: { enforced: boolean; checkedAt: number } | null = null;
+
+async function urlTokenAuthEnforced(sampleGuid: string): Promise<boolean> {
+  if (urlAuthCache && Date.now() - urlAuthCache.checkedAt < 5 * 60_000) {
+    return urlAuthCache.enforced;
+  }
+  try {
+    const res = await fetch(
+      `https://${cdnHostname}/${sampleGuid}/playlist.m3u8`,
+      {
+        // Refererless requests are blocked outright, so send a page referer —
+        // only a 403 *with* referer means URL token auth is enforced.
+        headers: { referer: "https://whymedicine.app/" },
+        cache: "no-store",
+      },
+    );
+    const enforced = res.status === 403;
+    urlAuthCache = { enforced, checkedAt: Date.now() };
+    return enforced;
+  } catch {
+    // CDN unreachable from here; assume signing if we hold a key.
+    return Boolean(tokenKey);
+  }
+}
+
+/**
+ * HLS playback URL for a video. When the library enforces token auth on
+ * direct URLs (and we hold the key), returns a path-style signed URL with a
+ * directory-scoped token — it covers the playlist and every segment, and
+ * expires. Otherwise returns the plain URL, which the library still shields
+ * from refererless access (curl, download managers, pasted links).
+ */
+export async function bunnyPlaybackUrl(
   videoGuid: string,
   expiresInSeconds = 60 * 60 * 6,
-): string {
+): Promise<string> {
   const plain = `https://${cdnHostname}/${videoGuid}/playlist.m3u8`;
-  if (!tokenKey) return plain;
+  if (!tokenKey || !(await urlTokenAuthEnforced(videoGuid))) return plain;
 
   const expires = Math.floor(Date.now() / 1000) + expiresInSeconds;
   const path = `/${videoGuid}/`;

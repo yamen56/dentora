@@ -67,9 +67,17 @@ Setup (~10 minutes):
    - `BUNNY_STREAM_TOKEN_KEY` — library **Security** → enable **Token
      Authentication**, copy its key. (Recommended: makes every video URL
      signed and expiring, so links can't be shared.)
-4. Also in **Security**: enable "Block direct URL file access" only if token
-   auth is on; leave MP4 fallback off (HLS only is fine — the player handles it).
-5. Redeploy (or just tell Claude — env changes need a redeploy to apply).
+4. Done 2026-07-10. Library 701643 live and verified end-to-end. Note the
+   library has TWO token-auth toggles: **embed view** token auth (ON — locks
+   the iframe embed nobody uses) and token auth on **direct video file URLs**
+   (currently OFF). With it off, videos are still shielded from refererless
+   access (curl / download managers / pasted links) and students only ever
+   get URLs through the enrollment-checked API + watermark. For maximum
+   protection (expiring signed URLs), flip the video-files token auth ON in
+   the library's Security page — **the app auto-detects the change within
+   5 minutes, no redeploy needed** (lib/bunny.ts probes the CDN and switches
+   between plain and path-style signed URLs automatically).
+5. Env vars were added to Vercel production 2026-07-10.
 
 How it works after that: instructor uploads go browser → Bunny (resumable, so
 big files survive connection drops), students get short-lived signed HLS URLs
