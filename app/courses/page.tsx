@@ -7,9 +7,19 @@ import { CourseCard } from "@/components/course-card";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  alternates: { canonical: "/courses" },
-};
+export async function generateMetadata() {
+  const t = await getTranslations("courses");
+  return {
+    title: t("catalogTitle"),
+    description: t("catalogSubtitle"),
+    alternates: { canonical: "/courses" },
+    openGraph: {
+      title: t("catalogTitle"),
+      description: t("catalogSubtitle"),
+      url: "/courses",
+    },
+  };
+}
 
 interface SearchParams {
   q?: string;

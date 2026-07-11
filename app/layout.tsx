@@ -45,6 +45,11 @@ export const metadata: Metadata = {
       "Online video courses built for medical school students, taught by practicing clinicians and academics.",
   },
   robots: { index: true, follow: true },
+  // Google Search Console ownership token — set GOOGLE_SITE_VERIFICATION in
+  // Vercel env and redeploy; the meta tag appears on every page.
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 const organizationJsonLd = {
