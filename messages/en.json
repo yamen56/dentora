@@ -172,6 +172,7 @@
     "bio": "Credentials / Bio",
     "bioPlaceholder": "Tell us about your qualifications and teaching experience",
     "rememberMe": "Remember me",
+    "singleDeviceNote": "Your account works on one device at a time. Signing in here will automatically sign you out on any other device.",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
     "signUp": "Sign up",

@@ -9,7 +9,7 @@ import { z } from "zod";
 import { getSession, signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, MonitorSmartphone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -126,6 +126,10 @@ export function LoginForm() {
             <Label htmlFor="remember" className="font-normal">
               {t("rememberMe")}
             </Label>
+          </div>
+          <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
+            <MonitorSmartphone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p>{t("singleDeviceNote")}</p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
