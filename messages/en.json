@@ -45,6 +45,7 @@
     "admin": "Admin",
     "login": "Log in",
     "register": "Sign up",
+    "installApp": "Install app",
     "logout": "Log out",
     "profile": "Profile",
     "language": "Language"
@@ -604,5 +605,13 @@
     "rateLimited": "Too many attempts. Please try again later.",
     "server": "Server error. Please try again.",
     "validation": "Please check the form and try again."
+  },
+
+  "install": {
+    "title": "Install Why Medicine",
+    "subtitle": "Add the app to your home screen for the full-screen experience.",
+    "ios1": "In Safari, tap the Share button",
+    "ios2": "Choose \"Add to Home Screen\"",
+    "genericHint": "Open your browser menu and choose \"Add to Home screen\" or \"Install app\"."
   }
 }

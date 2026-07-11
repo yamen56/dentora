@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 
 import { getCurrentUser, roleHome } from "@/lib/auth-helpers";
+import { InstallAppButton } from "@/components/install-app";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ModeToggle } from "@/components/mode-toggle";
 import { MobileNav } from "@/components/mobile-nav";
@@ -59,6 +60,7 @@ export async function Navbar() {
         </div>
 
         <div className="flex items-center gap-1">
+          <InstallAppButton />
           <LanguageSwitcher />
           <ModeToggle />
           {user ? (
