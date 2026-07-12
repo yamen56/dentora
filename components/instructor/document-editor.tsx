@@ -11,6 +11,9 @@ import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import { TableKit } from "@tiptap/extension-table";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 import { CharacterCount, Placeholder } from "@tiptap/extensions";
 import {
   AlignCenter,
@@ -28,16 +31,24 @@ import {
   Italic,
   Link as LinkIcon,
   List,
+  ListChecks,
   ListOrdered,
   Minus,
   Quote,
   Redo2,
+  Search,
   Strikethrough,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
   Table as TableIcon,
   Underline,
   Undo2,
   Unlink,
+  Upload,
+  X,
 } from "lucide-react";
+
+import { useCloudinaryUpload } from "@/lib/use-cloudinary-upload";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +89,16 @@ const HIGHLIGHT_COLORS = [
 ];
 
 const FONT_SIZES = ["12", "14", "16", "18", "20", "24", "28", "32"];
+
+const FONT_FAMILIES = [
+  { name: "Arial", value: "Arial, Helvetica, sans-serif" },
+  { name: "Georgia", value: "Georgia, 'Times New Roman', serif" },
+  { name: "Times New Roman", value: "'Times New Roman', Times, serif" },
+  { name: "Courier New", value: "'Courier New', Courier, monospace" },
+  { name: "Cairo", value: "Cairo, 'Segoe UI', Tahoma, sans-serif" },
+];
+
+const LINE_HEIGHTS = ["1", "1.15", "1.5", "1.65", "2"];
 
 function ToolbarButton({
   onClick,
@@ -123,6 +144,17 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
   // Re-render the toolbar on selection/content changes so active states track.
   const [, setTick] = useState(0);
 
+  // Find & replace
+  const [findOpen, setFindOpen] = useState(false);
+  const [findTerm, setFindTerm] = useState("");
+  const [replaceTerm, setReplaceTerm] = useState("");
+  const [matchInfo, setMatchInfo] = useState<string | null>(null);
+
+  // Image upload straight into the document (public Cloudinary asset)
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const { upload: uploadAsset, uploading: uploadingImage } =
+    useCloudinaryUpload();
+
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const statusRef = useRef(status);
   statusRef.current = status;
@@ -138,8 +170,12 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
       Highlight.configure({ multicolor: true }),
       Image,
       TableKit.configure({
-        table: { resizable: false },
+        table: { resizable: true },
       }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Subscript,
+      Superscript,
       CharacterCount,
       Placeholder.configure({ placeholder: t("placeholder") }),
     ],
@@ -228,6 +264,86 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
     editor.chain().focus().setImage({ src: url }).run();
   }
 
+  async function uploadImageFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (imageInputRef.current) imageInputRef.current.value = "";
+    if (!file || !editor) return;
+    try {
+      toast.info(t("uploadingImage"));
+      const res = await uploadAsset(file, "image");
+      editor.chain().focus().setImage({ src: res.url }).run();
+    } catch {
+      toast.error(t("saveFailed"));
+    }
+  }
+
+  // ---- Find & replace (case-insensitive, per text node) ----
+  function findMatches(term: string): { from: number; to: number }[] {
+    if (!editor || !term) return [];
+    const q = term.toLowerCase();
+    const matches: { from: number; to: number }[] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (!node.isText || !node.text) return;
+      const text = node.text.toLowerCase();
+      let i = text.indexOf(q);
+      while (i !== -1) {
+        matches.push({ from: pos + i, to: pos + i + term.length });
+        i = text.indexOf(q, i + Math.max(q.length, 1));
+      }
+    });
+    return matches;
+  }
+
+  function findNext() {
+    if (!editor) return;
+    const matches = findMatches(findTerm);
+    if (matches.length === 0) {
+      setMatchInfo(t("noMatches"));
+      return;
+    }
+    const after = editor.state.selection.from;
+    const idx = matches.findIndex((m) => m.from > after);
+    const target = matches[idx === -1 ? 0 : idx];
+    const shown = (idx === -1 ? 0 : idx) + 1;
+    setMatchInfo(`${shown} / ${matches.length}`);
+    editor
+      .chain()
+      .focus()
+      .setTextSelection(target)
+      .scrollIntoView()
+      .run();
+  }
+
+  function replaceOne() {
+    if (!editor || !findTerm) return;
+    const { from, to } = editor.state.selection;
+    const selected = editor.state.doc.textBetween(from, to);
+    if (selected.toLowerCase() === findTerm.toLowerCase()) {
+      editor
+        .chain()
+        .focus()
+        .insertContentAt({ from, to }, replaceTerm)
+        .run();
+    }
+    findNext();
+  }
+
+  function replaceAll() {
+    if (!editor || !findTerm) return;
+    const matches = findMatches(findTerm);
+    if (matches.length === 0) {
+      setMatchInfo(t("noMatches"));
+      return;
+    }
+    let chain = editor.chain().focus();
+    // Back to front so earlier positions stay valid.
+    for (const m of [...matches].reverse()) {
+      chain = chain.insertContentAt(m, replaceTerm);
+    }
+    chain.run();
+    setMatchInfo(`0 / 0`);
+  }
+
   function toggleDir() {
     const next = dir === "ltr" ? "rtl" : "ltr";
     setDir(next);
@@ -273,6 +389,11 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
   pre { background: #f1f5f9; border-radius: 8px; padding: 12px; overflow-x: auto; }
   pre code { background: none; padding: 0; }
   mark { border-radius: 2px; padding: 0 2px; }
+  ul[data-type="taskList"] { list-style: none; padding-inline-start: 0.2em; }
+  ul[data-type="taskList"] li { display: flex; gap: 0.55em; align-items: flex-start; }
+  ul[data-type="taskList"] li[data-checked="true"] > div { text-decoration: line-through; color: #9ca3af; }
+  sub { vertical-align: sub; font-size: smaller; }
+  sup { vertical-align: super; font-size: smaller; }
 </style>
 </head>
 <body>${html}</body>
@@ -307,8 +428,29 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
       "",
     ) ?? "16";
 
+  const currentFont =
+    (editor.getAttributes("textStyle").fontFamily as string | undefined) ??
+    "default";
+  const currentLineHeight =
+    (editor.getAttributes("textStyle").lineHeight as string | undefined) ??
+    "default";
+
   const words = editor.storage.characterCount.words();
   const chars = editor.storage.characterCount.characters();
+
+  // Document outline (headings) for the side panel, click to jump.
+  const outline: { level: number; text: string; pos: number }[] = [];
+  editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === "heading") {
+      outline.push({
+        level: node.attrs.level as number,
+        text: node.textContent || "…",
+        pos,
+      });
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-4">
@@ -400,6 +542,31 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
           </SelectContent>
         </Select>
 
+        {/* Font family */}
+        <Select
+          value={currentFont}
+          onValueChange={(v) =>
+            v === "default"
+              ? editor.chain().focus().unsetFontFamily().run()
+              : editor.chain().focus().setFontFamily(v).run()
+          }
+        >
+          <SelectTrigger className="h-8 w-28 text-xs" title={t("font")}>
+            <span className="truncate">
+              {FONT_FAMILIES.find((f) => f.value === currentFont)?.name ??
+                t("fontDefault")}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">{t("fontDefault")}</SelectItem>
+            {FONT_FAMILIES.map((f) => (
+              <SelectItem key={f.name} value={f.value}>
+                <span style={{ fontFamily: f.value }}>{f.name}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* Font size */}
         <Select
           value={FONT_SIZES.includes(currentSize) ? currentSize : "16"}
@@ -414,6 +581,28 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
             {FONT_SIZES.map((s) => (
               <SelectItem key={s} value={s}>
                 {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Line spacing */}
+        <Select
+          value={currentLineHeight}
+          onValueChange={(v) =>
+            v === "default"
+              ? editor.chain().focus().unsetLineHeight().run()
+              : editor.chain().focus().setLineHeight(v).run()
+          }
+        >
+          <SelectTrigger className="h-8 w-16 text-xs" title={t("lineHeight")}>
+            {currentLineHeight === "default" ? "1.65" : currentLineHeight}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">{t("fontDefault")}</SelectItem>
+            {LINE_HEIGHTS.map((h) => (
+              <SelectItem key={h} value={h}>
+                {h}
               </SelectItem>
             ))}
           </SelectContent>
@@ -448,6 +637,20 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
           label={t("strikethrough")}
         >
           <Strikethrough className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleSubscript().run()}
+          active={editor.isActive("subscript")}
+          label={t("subscript")}
+        >
+          <SubscriptIcon className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleSuperscript().run()}
+          active={editor.isActive("superscript")}
+          label={t("superscript")}
+        >
+          <SuperscriptIcon className="h-4 w-4" />
         </ToolbarButton>
 
         {/* Text color */}
@@ -581,6 +784,13 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          active={editor.isActive("taskList")}
+          label={t("taskList")}
+        >
+          <ListChecks className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           active={editor.isActive("blockquote")}
           label={t("quote")}
@@ -656,9 +866,32 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <ToolbarButton onClick={addImage} label={t("insertImage")}>
-          <ImageIcon className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Image: upload to Cloudinary or paste a URL */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-0.5 px-1.5"
+              title={t("insertImage")}
+              disabled={uploadingImage}
+            >
+              <ImageIcon className="h-4 w-4" />
+              <ChevronDown className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => imageInputRef.current?.click()}>
+              <Upload className="me-2 h-4 w-4" />
+              {t("uploadImage")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={addImage}>
+              <LinkIcon className="me-2 h-4 w-4" />
+              {t("imageFromUrl")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <ToolbarButton
           onClick={setLink}
           active={editor.isActive("link")}
@@ -684,16 +917,117 @@ export function DocumentEditor({ doc }: { doc: DocumentData }) {
         >
           <Eraser className="h-4 w-4" />
         </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => setFindOpen((v) => !v)}
+          active={findOpen}
+          label={t("findReplace")}
+        >
+          <Search className="h-4 w-4" />
+        </ToolbarButton>
       </div>
 
-      {/* Page canvas */}
-      <div className="rounded-xl bg-muted/50 p-4 sm:p-8">
-        <div
-          dir={dir}
-          className="mx-auto min-h-[29.7cm] w-full max-w-[21cm] rounded-md border bg-white p-[1.5cm] text-neutral-900 shadow-md sm:p-[2cm] dark:border-neutral-300"
-          onClick={() => editor.chain().focus().run()}
-        >
-          <EditorContent editor={editor} />
+      {/* Find & replace panel */}
+      {findOpen && (
+        <div className="sticky top-[7.5rem] z-30 flex flex-wrap items-center gap-2 rounded-xl border bg-card p-2 shadow-sm">
+          <Input
+            value={findTerm}
+            onChange={(e) => {
+              setFindTerm(e.target.value);
+              setMatchInfo(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                findNext();
+              }
+            }}
+            placeholder={t("findPlaceholder")}
+            className="h-8 w-44 text-sm"
+          />
+          <Input
+            value={replaceTerm}
+            onChange={(e) => setReplaceTerm(e.target.value)}
+            placeholder={t("replacePlaceholder")}
+            className="h-8 w-44 text-sm"
+          />
+          <Button type="button" variant="outline" size="sm" onClick={findNext}>
+            {t("findNext")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={replaceOne}>
+            {t("replaceOne")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={replaceAll}>
+            {t("replaceAll")}
+          </Button>
+          {matchInfo && (
+            <span className="text-xs text-muted-foreground">{matchInfo}</span>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="ms-auto h-8 w-8"
+            onClick={() => setFindOpen(false)}
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={uploadImageFile}
+      />
+
+      {/* Outline + page canvas */}
+      <div className="flex gap-4">
+        <aside className="sticky top-32 hidden max-h-[70vh] w-52 shrink-0 self-start overflow-y-auto rounded-xl border bg-card p-3 xl:block">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground rtl:tracking-normal">
+            {t("outline")}
+          </p>
+          {outline.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("outlineEmpty")}</p>
+          ) : (
+            <div className="space-y-0.5">
+              {outline.map((h, i) => (
+                <button
+                  key={`${h.pos}-${i}`}
+                  type="button"
+                  onClick={() =>
+                    editor
+                      .chain()
+                      .focus()
+                      .setTextSelection(h.pos + 1)
+                      .scrollIntoView()
+                      .run()
+                  }
+                  className={cn(
+                    "block w-full truncate rounded px-2 py-1 text-start text-xs transition-colors hover:bg-accent",
+                    h.level === 1 && "font-semibold",
+                    h.level === 2 && "ps-4",
+                    h.level >= 3 && "ps-6 text-muted-foreground",
+                  )}
+                >
+                  {h.text}
+                </button>
+              ))}
+            </div>
+          )}
+        </aside>
+
+        <div className="min-w-0 flex-1 rounded-xl bg-muted/50 p-4 sm:p-8">
+          <div
+            dir={dir}
+            className="mx-auto min-h-[29.7cm] w-full max-w-[21cm] rounded-md border bg-white p-[1.5cm] text-neutral-900 shadow-md sm:p-[2cm] dark:border-neutral-300"
+            onClick={() => editor.chain().focus().run()}
+          >
+            <EditorContent editor={editor} />
+          </div>
         </div>
       </div>
 

@@ -587,7 +587,25 @@
     "linkPrompt": "Enter the URL (leave empty to remove):",
     "removeLink": "Remove link",
     "clearFormatting": "Clear formatting",
-    "wordCount": "{words} words · {chars} characters"
+    "wordCount": "{words} words · {chars} characters",
+    "font": "Font",
+    "fontDefault": "Default",
+    "lineHeight": "Line spacing",
+    "taskList": "Checklist",
+    "subscript": "Subscript",
+    "superscript": "Superscript",
+    "findReplace": "Find & replace",
+    "findPlaceholder": "Find…",
+    "replacePlaceholder": "Replace with…",
+    "findNext": "Next",
+    "replaceOne": "Replace",
+    "replaceAll": "Replace all",
+    "noMatches": "No matches",
+    "uploadImage": "Upload image",
+    "imageFromUrl": "Image from URL",
+    "uploadingImage": "Uploading image…",
+    "outline": "Outline",
+    "outlineEmpty": "Headings you add will appear here"
   },
   "footer": {
     "blurb": "Online courses built for medical school students, taught by practicing clinicians and academics.",
@@ -608,7 +626,6 @@
     "server": "Server error. Please try again.",
     "validation": "Please check the form and try again."
   },
-
   "install": {
     "title": "Install Why Medicine",
     "subtitle": "Add the app to your home screen for the full-screen experience.",
@@ -616,7 +633,6 @@
     "ios2": "Choose \"Add to Home Screen\"",
     "genericHint": "Open your browser menu and choose \"Add to Home screen\" or \"Install app\"."
   },
-
   "examPeriod": {
     "label": "Exam section",
     "none": "Not assigned",
@@ -624,6 +640,7 @@
     "FIRST": "First exam",
     "SECOND": "Second exam",
     "MID": "Mid exam",
-    "FINAL": "Final exam"
+    "FINAL": "Final exam",
+    "groupToggle": "Group by exam"
   }
 }

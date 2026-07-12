@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { QuizPanel, type QuizQuestion } from "@/components/quiz-panel";
@@ -130,21 +131,25 @@ export function LearnClient({
     return list;
   }, [current, lectureQuestions, lectureFlashcards]);
 
-  // Playlist grouped by exam section (same rows, just section labels).
-  // Flat order — and the numbering with it — is preserved for prev/next.
+  // Playlist grouped by exam section (same rows, just section labels), with
+  // a toggle back to the flat list. Flat order — and the numbering with it —
+  // is preserved for prev/next.
+  const hasSections = lectures.some((l) => l.examPeriod != null);
+  const [grouped, setGrouped] = useState(true);
   const lectureGroups = useMemo(() => {
+    const indexed = lectures.map((l, index) => ({ ...l, index }));
+    if (!grouped || !hasSections) {
+      return [{ period: null as ExamPeriod | null, items: indexed }];
+    }
     const order = ["FIRST", "SECOND", "MID", "FINAL", null] as const;
     return order
       .map((period) => ({
-        period,
-        items: lectures
-          .map((l, index) => ({ ...l, index }))
-          .filter((l) => l.examPeriod === period),
+        period: period as ExamPeriod | null,
+        items: indexed.filter((l) => l.examPeriod === period),
       }))
       .filter((g) => g.items.length > 0);
-  }, [lectures]);
-  const showGroupHeaders =
-    lectureGroups.length > 1 || lectureGroups[0]?.period != null;
+  }, [lectures, grouped, hasSections]);
+  const showGroupHeaders = grouped && hasSections;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -164,6 +169,22 @@ export function LearnClient({
           </div>
           <Progress value={pct} />
         </div>
+
+        {hasSections && (
+          <div className="flex items-center justify-end gap-2">
+            <Switch
+              id="learn-group-by-exam"
+              checked={grouped}
+              onCheckedChange={setGrouped}
+            />
+            <label
+              htmlFor="learn-group-by-exam"
+              className="text-xs text-muted-foreground"
+            >
+              {tp("groupToggle")}
+            </label>
+          </div>
+        )}
 
         <div className="space-y-1 rounded-lg border p-2">
           {lectureGroups.map((group) => (
