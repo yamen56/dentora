@@ -9,6 +9,7 @@ import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
+import { jsonLdString } from "@/lib/utils";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://dentora-delta.vercel.app";
@@ -76,7 +77,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdString(organizationJsonLd) }}
         />
         <NextIntlClientProvider messages={messages}>
           <Providers>

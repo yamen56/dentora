@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 import { prisma } from "./prisma";
-import { isActiveSession } from "./auth-helpers";
+import { isValidSession } from "./auth-helpers";
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -12,8 +12,9 @@ export async function getApiUser() {
   const session = await getServerSession(authOptions);
   const user = session?.user ?? null;
   if (!user) return null;
-  // Reject requests from a student device whose session has been superseded.
-  if (!(await isActiveSession(user))) return null;
+  // Reject stale tokens: deactivated accounts, changed roles, un-approved
+  // instructors, and superseded student sessions.
+  if (!(await isValidSession(user))) return null;
   return user;
 }
 

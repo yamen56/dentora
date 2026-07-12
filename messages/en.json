@@ -186,6 +186,7 @@
       "INVALID_CREDENTIALS": "Incorrect email or password.",
       "MISSING_CREDENTIALS": "Please enter your email and password.",
       "ACCOUNT_INACTIVE": "Your account is not active. Please contact support.",
+      "RATE_LIMITED": "Too many attempts. Please wait a minute and try again.",
       "INSTRUCTOR_PENDING": "Your instructor account is awaiting approval.",
       "INSTRUCTOR_REJECTED": "Your instructor application was not approved.",
       "emailTaken": "An account with this email already exists.",

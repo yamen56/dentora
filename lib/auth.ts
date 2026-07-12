@@ -3,6 +3,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { rateLimit } from "./rate-limit";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -20,13 +21,26 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("MISSING_CREDENTIALS");
         }
 
+        const email = credentials.email.toLowerCase().trim();
+
+        // Throttle brute-force attempts: per source IP and per target account.
+        const xff = req?.headers?.["x-forwarded-for"];
+        const ip =
+          (Array.isArray(xff) ? xff[0] : xff)?.split(",")[0]?.trim() ||
+          "unknown";
+        const perIp = rateLimit(`login:ip:${ip}`, 20, 60_000);
+        const perEmail = rateLimit(`login:email:${email}`, 5, 60_000);
+        if (!perIp.success || !perEmail.success) {
+          throw new Error("RATE_LIMITED");
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase().trim() },
+          where: { email },
         });
 
         if (!user) throw new Error("INVALID_CREDENTIALS");

@@ -36,7 +36,7 @@ import {
 import { CourseCard } from "@/components/course-card";
 import { HeroGraph } from "@/components/hero-graph";
 import { categoryName } from "@/lib/i18n-helpers";
-import { initials } from "@/lib/utils";
+import { initials, jsonLdString } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -190,7 +190,7 @@ export default async function HomePage() {
     <div className="flex flex-col">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(faqJsonLd) }}
       />
       {/* Hero */}
       <section className="relative overflow-hidden border-b bg-gradient-to-b from-accent/40 to-background">

@@ -38,13 +38,20 @@ const KNOWN_ERRORS = [
   "ACCOUNT_INACTIVE",
   "INSTRUCTOR_PENDING",
   "INSTRUCTOR_REJECTED",
+  "RATE_LIMITED",
 ];
 
 export function LoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || undefined;
+  // Only follow same-origin relative paths — an absolute or protocol-relative
+  // callbackUrl in a crafted login link would bounce the user to another site.
+  const rawCallbackUrl = params.get("callbackUrl");
+  const callbackUrl =
+    rawCallbackUrl?.startsWith("/") && !rawCallbackUrl.startsWith("//")
+      ? rawCallbackUrl
+      : undefined;
   const [loading, setLoading] = useState(false);
 
   const {

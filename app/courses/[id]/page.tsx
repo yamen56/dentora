@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApplyButton } from "@/components/apply-button";
 import { pick } from "@/lib/i18n-helpers";
-import { formatDuration } from "@/lib/utils";
+import { formatDuration, jsonLdString } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -134,7 +134,7 @@ export default async function CourseDetailPage({
     <div className="container grid gap-8 py-8 lg:grid-cols-3">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(courseJsonLd) }}
       />
       {/* Main */}
       <div className="space-y-6 lg:col-span-2">

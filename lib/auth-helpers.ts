@@ -12,30 +12,47 @@ export async function getSession() {
 }
 
 /**
- * One active session per student: the token carries the sessionId issued at
- * login, and it must still match the one stored on the user. A newer login on
- * another device rotates that id, which invalidates this one. Non-students and
- * legacy sessions (issued before this feature) are always allowed.
+ * Validate the JWT's claims against the database on every request, so account
+ * changes take effect immediately instead of when the 30-day token expires:
+ * the user must still exist and be active, hold the role the token was issued
+ * with, instructors must still be approved, and a student token must carry the
+ * sessionId from their latest login (one active device per student; legacy
+ * student tokens without a sessionId are allowed).
  */
-export async function isActiveSession(user: {
+export async function isValidSession(user: {
   id: string;
   role: Role;
   sessionId?: string | null;
 }) {
-  if (user.role !== "STUDENT") return true;
-  if (!user.sessionId) return true;
   const db = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { sessionId: true },
+    select: {
+      isActive: true,
+      role: true,
+      sessionId: true,
+      instructorStatus: true,
+    },
   });
-  return Boolean(db) && db!.sessionId === user.sessionId;
+  if (!db || !db.isActive) return false;
+  if (db.role !== user.role) return false;
+  if (db.role === "INSTRUCTOR" && db.instructorStatus !== "APPROVED") {
+    return false;
+  }
+  if (
+    db.role === "STUDENT" &&
+    user.sessionId &&
+    db.sessionId !== user.sessionId
+  ) {
+    return false;
+  }
+  return true;
 }
 
 export async function getCurrentUser() {
   const session = await getSession();
   const user = session?.user ?? null;
   if (!user) return null;
-  if (!(await isActiveSession(user))) return null;
+  if (!(await isValidSession(user))) return null;
   return user;
 }
 

@@ -29,6 +29,15 @@ export function initials(name: string) {
 }
 
 /**
+ * Serialize JSON-LD for embedding in a <script> tag. JSON.stringify leaves
+ * "<" intact, so a value containing "</script>" would otherwise close the tag
+ * and inject markup (course titles/descriptions are instructor-supplied).
+ */
+export function jsonLdString(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
+/**
  * wa.me link for a stored phone number. Numbers are free-form in the DB
  * (local "07…" or international "+962…"); WhatsApp needs digits with country
  * code and no "+". Local numbers starting with a single 0 are assumed
