@@ -615,5 +615,15 @@
     "ios1": "In Safari, tap the Share button",
     "ios2": "Choose \"Add to Home Screen\"",
     "genericHint": "Open your browser menu and choose \"Add to Home screen\" or \"Install app\"."
+  },
+
+  "examPeriod": {
+    "label": "Exam section",
+    "none": "Not assigned",
+    "NONE": "General",
+    "FIRST": "First exam",
+    "SECOND": "Second exam",
+    "MID": "Mid exam",
+    "FINAL": "Final exam"
   }
 }

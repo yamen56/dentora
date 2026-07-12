@@ -39,13 +39,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MediaUpload } from "@/components/instructor/media-upload";
-import { lectureFormSchema, type LectureFormValues } from "@/lib/validations";
+import {
+  examPeriods,
+  lectureFormSchema,
+  type LectureFormValues,
+} from "@/lib/validations";
 import { formatDuration } from "@/lib/utils";
 
 export interface LectureRow {
@@ -58,6 +69,7 @@ export interface LectureRow {
   pdfPublicId: string | null;
   duration: number;
   isPreview: boolean;
+  examPeriod: (typeof examPeriods)[number] | null;
   order: number;
 }
 
@@ -72,6 +84,7 @@ function SortableLecture({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const tp = useTranslations("examPeriod");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: lecture.id });
 
@@ -111,6 +124,9 @@ function SortableLecture({
             </span>
           )}
           {lecture.isPreview && <Badge variant="outline">preview</Badge>}
+          {lecture.examPeriod && (
+            <Badge variant="secondary">{tp(lecture.examPeriod)}</Badge>
+          )}
         </div>
       </div>
       <Button type="button" variant="ghost" size="icon" onClick={onEdit}>
@@ -137,6 +153,7 @@ export function LectureManager({
   initialLectures: LectureRow[];
 }) {
   const t = useTranslations("instructor");
+  const tp = useTranslations("examPeriod");
   const [lectures, setLectures] = useState<LectureRow[]>(initialLectures);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<LectureRow | null>(null);
@@ -166,6 +183,7 @@ export function LectureManager({
       pdfPublicId: "",
       duration: 0,
       isPreview: false,
+      examPeriod: "NONE",
     },
   });
 
@@ -180,6 +198,7 @@ export function LectureManager({
         pdfPublicId: editing?.pdfPublicId ?? "",
         duration: editing?.duration ?? 0,
         isPreview: editing?.isPreview ?? false,
+        examPeriod: editing?.examPeriod ?? "NONE",
       });
     }
   }, [open, editing, reset]);
@@ -213,7 +232,10 @@ export function LectureManager({
     const res = await fetch(url, {
       method,
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        ...values,
+        examPeriod: values.examPeriod === "NONE" ? null : values.examPeriod,
+      }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -337,14 +359,35 @@ export function LectureManager({
                   {...register("duration", { valueAsNumber: true })}
                 />
               </div>
-              <div className="flex items-end gap-2 pb-2">
-                <Switch
-                  id="l-preview"
-                  checked={watch("isPreview")}
-                  onCheckedChange={(v) => setValue("isPreview", v)}
-                />
-                <Label htmlFor="l-preview">Free preview</Label>
+              <div className="space-y-2">
+                <Label>{tp("label")}</Label>
+                <Select
+                  value={watch("examPeriod")}
+                  onValueChange={(v) =>
+                    setValue("examPeriod", v as LectureFormValues["examPeriod"])
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NONE">{tp("none")}</SelectItem>
+                    {examPeriods.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        {tp(p)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="l-preview"
+                checked={watch("isPreview")}
+                onCheckedChange={(v) => setValue("isPreview", v)}
+              />
+              <Label htmlFor="l-preview">Free preview</Label>
             </div>
             <div className="space-y-2">
               <Label htmlFor="l-desc">Description</Label>

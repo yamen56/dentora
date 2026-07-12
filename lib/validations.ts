@@ -35,6 +35,8 @@ export const courseSchema = z.object({
   thumbnail: z.string().url().optional().or(z.literal("")),
 });
 
+export const examPeriods = ["FIRST", "SECOND", "MID", "FINAL"] as const;
+
 export const lectureSchema = z.object({
   title: z.string().min(2).max(200),
   description: z.string().max(2000).optional().or(z.literal("")),
@@ -44,6 +46,7 @@ export const lectureSchema = z.object({
   pdfPublicId: z.string().optional().or(z.literal("")),
   duration: z.coerce.number().min(0).default(0),
   isPreview: z.boolean().optional().default(false),
+  examPeriod: z.enum(examPeriods).nullish(),
 });
 
 export const questionSchema = z
@@ -137,6 +140,8 @@ export const lectureFormSchema = z.object({
   pdfPublicId: z.string().optional().or(z.literal("")),
   duration: z.number().min(0),
   isPreview: z.boolean(),
+  // "NONE" in the form maps to null in the API payload
+  examPeriod: z.enum(["NONE", ...examPeriods]),
 });
 export type LectureFormValues = z.infer<typeof lectureFormSchema>;
 

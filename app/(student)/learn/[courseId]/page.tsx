@@ -78,6 +78,7 @@ export default async function LearnPage({
     hasPdf: Boolean(l.pdfUrl || l.pdfPublicId),
     hasFlashcards: l.flashcards.length > 0,
     duration: l.duration,
+    examPeriod: l.examPeriod,
   }));
 
   const lectureFlashcards: Record<

@@ -29,6 +29,7 @@ export async function POST(
       pdfPublicId: d.pdfPublicId ? d.pdfPublicId : null,
       duration: d.duration,
       isPreview: d.isPreview ?? false,
+      examPeriod: d.examPeriod ?? null,
       order: count,
     },
   });

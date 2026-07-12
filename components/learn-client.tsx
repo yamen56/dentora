@@ -50,6 +50,8 @@ const PdfViewer = dynamic(
   },
 );
 
+export type ExamPeriod = "FIRST" | "SECOND" | "MID" | "FINAL";
+
 export interface LecturePlay {
   id: string;
   title: string;
@@ -57,6 +59,7 @@ export interface LecturePlay {
   hasPdf: boolean;
   hasFlashcards: boolean;
   duration: number;
+  examPeriod: ExamPeriod | null;
 }
 
 const COURSE_QUIZ = "__course_quiz__";
@@ -86,6 +89,7 @@ export function LearnClient({
   const t = useTranslations("player");
   const tq = useTranslations("quiz");
   const tf = useTranslations("flashcards");
+  const tp = useTranslations("examPeriod");
   const [completed, setCompleted] = useState<Set<string>>(
     new Set(initialCompleted),
   );
@@ -126,6 +130,22 @@ export function LearnClient({
     return list;
   }, [current, lectureQuestions, lectureFlashcards]);
 
+  // Playlist grouped by exam section (same rows, just section labels).
+  // Flat order — and the numbering with it — is preserved for prev/next.
+  const lectureGroups = useMemo(() => {
+    const order = ["FIRST", "SECOND", "MID", "FINAL", null] as const;
+    return order
+      .map((period) => ({
+        period,
+        items: lectures
+          .map((l, index) => ({ ...l, index }))
+          .filter((l) => l.examPeriod === period),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [lectures]);
+  const showGroupHeaders =
+    lectureGroups.length > 1 || lectureGroups[0]?.period != null;
+
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       {/* Sidebar / playlist */}
@@ -146,31 +166,40 @@ export function LearnClient({
         </div>
 
         <div className="space-y-1 rounded-lg border p-2">
-          {lectures.map((l, i) => {
-            const done = completed.has(l.id);
-            return (
-              <button
-                key={l.id}
-                onClick={() => setCurrentId(l.id)}
-                className={cn(
-                  "flex w-full items-center gap-2 rounded-md p-2 text-start text-sm transition-colors hover:bg-accent",
-                  currentId === l.id && "bg-accent font-medium",
-                )}
-              >
-                {done ? (
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                ) : (
-                  <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                )}
-                <span className="me-auto truncate">
-                  {i + 1}. {l.title}
-                </span>
-                {l.hasVideo && <PlayCircle className="h-3.5 w-3.5 text-muted-foreground" />}
-                {l.hasPdf && <FileText className="h-3.5 w-3.5 text-muted-foreground" />}
-                {l.hasFlashcards && <Layers className="h-3.5 w-3.5 text-primary" />}
-              </button>
-            );
-          })}
+          {lectureGroups.map((group) => (
+            <div key={group.period ?? "NONE"}>
+              {showGroupHeaders && (
+                <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground rtl:tracking-normal">
+                  {tp(group.period ?? "NONE")}
+                </p>
+              )}
+              {group.items.map((l) => {
+                const done = completed.has(l.id);
+                return (
+                  <button
+                    key={l.id}
+                    onClick={() => setCurrentId(l.id)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md p-2 text-start text-sm transition-colors hover:bg-accent",
+                      currentId === l.id && "bg-accent font-medium",
+                    )}
+                  >
+                    {done ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                    ) : (
+                      <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="me-auto truncate">
+                      {l.index + 1}. {l.title}
+                    </span>
+                    {l.hasVideo && <PlayCircle className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {l.hasPdf && <FileText className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {l.hasFlashcards && <Layers className="h-3.5 w-3.5 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
 
           {courseFlashcards.length > 0 && (
             <button

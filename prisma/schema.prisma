@@ -50,6 +50,14 @@ enum ApplicationStatus {
   REJECTED
 }
 
+// Which exam a lecture belongs to — used to group the course curriculum.
+enum ExamPeriod {
+  FIRST
+  SECOND
+  MID
+  FINAL
+}
+
 model User {
   id           String  @id @default(cuid())
   name         String
@@ -135,6 +143,8 @@ model Lecture {
   order         Int     @default(0)
   duration      Int     @default(0) // seconds
   isPreview     Boolean @default(false) // free preview lecture
+  // null => not assigned to an exam section yet (shown under "General")
+  examPeriod    ExamPeriod?
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
