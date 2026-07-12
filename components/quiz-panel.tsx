@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ProtectedContent } from "@/components/protected-content";
 
 export interface QuizQuestion {
   id: string;
@@ -29,10 +30,13 @@ export function QuizPanel({
   courseId,
   lectureId,
   questions,
+  watermark,
 }: {
   courseId: string;
   lectureId: string | null;
   questions: QuizQuestion[];
+  /** student identity, tiled over the questions to deter screenshots */
+  watermark?: string;
 }) {
   const t = useTranslations("quiz");
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -74,6 +78,7 @@ export function QuizPanel({
   }
 
   return (
+    <ProtectedContent watermark={watermark}>
     <div className="space-y-4">
       {questions.map((q, i) => {
         const r = resultMap?.get(q.id);
@@ -151,5 +156,6 @@ export function QuizPanel({
         </Button>
       )}
     </div>
+    </ProtectedContent>
   );
 }

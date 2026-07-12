@@ -247,7 +247,8 @@
     "applicationPendingHint": "Your request is awaiting review. We'll notify you once it's approved.",
     "applicationSubmitted": "Application submitted! You'll get access once it's approved.",
     "applicationRejected": "Your previous application wasn't approved. You can apply again.",
-    "applicationError": "Could not submit your application. Please try again."
+    "applicationError": "Could not submit your application. Please try again.",
+    "lectureCount": "{count} lectures"
   },
   "player": {
     "markComplete": "Mark as complete",
@@ -640,7 +641,6 @@
     "FIRST": "First exam",
     "SECOND": "Second exam",
     "MID": "Mid exam",
-    "FINAL": "Final exam",
-    "groupToggle": "Group by exam"
+    "FINAL": "Final exam"
   }
 }

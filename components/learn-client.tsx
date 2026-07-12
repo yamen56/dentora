@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   CheckCircle2,
+  ChevronRight,
   Circle,
   FileText,
   HelpCircle,
@@ -16,7 +17,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { QuizPanel, type QuizQuestion } from "@/components/quiz-panel";
@@ -131,14 +131,12 @@ export function LearnClient({
     return list;
   }, [current, lectureQuestions, lectureFlashcards]);
 
-  // Playlist grouped by exam section (same rows, just section labels), with
-  // a toggle back to the flat list. Flat order — and the numbering with it —
-  // is preserved for prev/next.
+  // Playlist grouped into collapsible exam sections. Flat order — and the
+  // numbering with it — is preserved for prev/next.
   const hasSections = lectures.some((l) => l.examPeriod != null);
-  const [grouped, setGrouped] = useState(true);
   const lectureGroups = useMemo(() => {
     const indexed = lectures.map((l, index) => ({ ...l, index }));
-    if (!grouped || !hasSections) {
+    if (!hasSections) {
       return [{ period: null as ExamPeriod | null, items: indexed }];
     }
     const order = ["FIRST", "SECOND", "MID", "FINAL", null] as const;
@@ -148,8 +146,17 @@ export function LearnClient({
         items: indexed.filter((l) => l.examPeriod === period),
       }))
       .filter((g) => g.items.length > 0);
-  }, [lectures, grouped, hasSections]);
-  const showGroupHeaders = grouped && hasSections;
+  }, [lectures, hasSections]);
+
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const toggleSection = (p: ExamPeriod | null) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      const k = p ?? "NONE";
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -170,31 +177,34 @@ export function LearnClient({
           <Progress value={pct} />
         </div>
 
-        {hasSections && (
-          <div className="flex items-center justify-end gap-2">
-            <Switch
-              id="learn-group-by-exam"
-              checked={grouped}
-              onCheckedChange={setGrouped}
-            />
-            <label
-              htmlFor="learn-group-by-exam"
-              className="text-xs text-muted-foreground"
-            >
-              {tp("groupToggle")}
-            </label>
-          </div>
-        )}
-
         <div className="space-y-1 rounded-lg border p-2">
-          {lectureGroups.map((group) => (
+          {lectureGroups.map((group) => {
+            const sectionOpen = !collapsed.has(group.period ?? "NONE");
+            return (
             <div key={group.period ?? "NONE"}>
-              {showGroupHeaders && (
-                <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground rtl:tracking-normal">
-                  {tp(group.period ?? "NONE")}
-                </p>
+              {hasSections && (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(group.period)}
+                  aria-expanded={sectionOpen}
+                  className="mt-1 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-start transition-colors hover:bg-accent"
+                >
+                  <ChevronRight
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform rtl:rotate-180",
+                      sectionOpen && "rotate-90 rtl:rotate-90",
+                    )}
+                  />
+                  <span className="flex-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground rtl:tracking-normal">
+                    {tp(group.period ?? "NONE")}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {group.items.length}
+                  </span>
+                </button>
               )}
-              {group.items.map((l) => {
+              {sectionOpen &&
+                group.items.map((l) => {
                 const done = completed.has(l.id);
                 return (
                   <button
@@ -220,7 +230,8 @@ export function LearnClient({
                 );
               })}
             </div>
-          ))}
+            );
+          })}
 
           {courseFlashcards.length > 0 && (
             <button
@@ -270,6 +281,7 @@ export function LearnClient({
               courseId={courseId}
               lectureId={null}
               questions={courseQuestions}
+              watermark={watermark}
             />
           </div>
         ) : current ? (
@@ -345,6 +357,7 @@ export function LearnClient({
                       courseId={courseId}
                       lectureId={current.id}
                       questions={lectureQuestions[current.id] ?? []}
+                      watermark={watermark}
                     />
                   </TabsContent>
                 )}

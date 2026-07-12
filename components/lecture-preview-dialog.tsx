@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlashcardDeck, type Flashcard } from "@/components/flashcard-deck";
+import { ProtectedContent } from "@/components/protected-content";
 import {
   Dialog,
   DialogContent,
@@ -232,7 +233,10 @@ export function LecturePreviewDialog({
               )}
               {tabs.includes("quiz") && (
                 <TabsContent value="quiz">
-                  <PreviewQuiz questions={questions} />
+                  {/* No watermark (previews stay clean) but still copy-proof */}
+                  <ProtectedContent>
+                    <PreviewQuiz questions={questions} />
+                  </ProtectedContent>
                 </TabsContent>
               )}
             </Tabs>
