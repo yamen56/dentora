@@ -204,6 +204,112 @@
   text-decoration: line-through;
   color: #9ca3af;
 }
+/* ---- Study-note design system (callouts, cards, figures, sections) ---- */
+/* Auto-numbered section headings: 01, 02, 03 … like the printed notes. */
+.whymed-doc {
+  counter-reset: whymed-section;
+}
+.whymed-doc h2 {
+  counter-increment: whymed-section;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.whymed-doc h2::before {
+  content: counter(whymed-section, decimal-leading-zero);
+  flex-shrink: 0;
+  background: #d0102e;
+  color: #fff;
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.38em 0.5em;
+  border-radius: 6px;
+}
+.whymed-doc h2:nth-of-type(even)::before {
+  background: #7a2fb0;
+}
+
+/* Callout boxes */
+.whymed-doc [data-callout] {
+  border-inline-start: 4px solid;
+  border-radius: 10px;
+  padding: 0.9em 1.1em 0.9em 1em;
+  margin: 1em 0;
+}
+.whymed-doc [data-callout]::before {
+  display: block;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35em;
+}
+.whymed-doc [data-callout] > *:last-child {
+  margin-bottom: 0;
+}
+.whymed-doc [data-callout][data-variant="doctorsNote"] {
+  background: #fdf2f5;
+  border-color: #d0102e;
+}
+.whymed-doc [data-callout][data-variant="doctorsNote"]::before {
+  content: "✚ Doctor's Note";
+  color: #d0102e;
+}
+.whymed-doc [data-callout][data-variant="highYield"] {
+  background: #fef8ec;
+  border-color: #e0a020;
+}
+.whymed-doc [data-callout][data-variant="highYield"]::before {
+  content: "! High Yield";
+  color: #b8791a;
+}
+.whymed-doc [data-callout][data-variant="remember"] {
+  background: #eef2fb;
+  border-color: #2f5fb0;
+}
+.whymed-doc [data-callout][data-variant="remember"]::before {
+  content: "★ Remember";
+  color: #2f5fb0;
+}
+.whymed-doc [data-callout][data-variant="keyConcept"] {
+  background: #f6effb;
+  border-color: #7a2fb0;
+}
+.whymed-doc [data-callout][data-variant="keyConcept"]::before {
+  content: "◆ Key Concept";
+  color: #7a2fb0;
+}
+
+/* Card grids */
+.whymed-doc [data-card-grid] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75em;
+  margin: 1em 0;
+}
+.whymed-doc [data-card] {
+  border: 1px solid #e2e0da;
+  border-radius: 10px;
+  padding: 0.85em 1em;
+  background: #fff;
+}
+.whymed-doc [data-card] > *:first-child {
+  margin-top: 0;
+}
+.whymed-doc [data-card] > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Figure captions */
+.whymed-doc figcaption {
+  text-align: center;
+  font-size: 0.8em;
+  font-style: italic;
+  color: #6b7280;
+  margin: 0.4em 0 1em;
+}
+
 /* Resizable table columns */
 .whymed-doc .tableWrapper {
   overflow-x: auto;
